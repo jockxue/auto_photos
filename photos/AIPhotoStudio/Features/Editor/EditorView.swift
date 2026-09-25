@@ -8,10 +8,11 @@ struct EditorView: View {
     }
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session: EditorSession
-    @State private var selectedAdjustment: AdjustmentKey = .exposure
     @State private var selectedTool: Tool = .adjust
     @State private var saveError: String?
+    @State private var showsExport = false
 
     init(
         original: OriginalImage = ImageSourceFactory.makeTestImage(),
@@ -28,8 +29,21 @@ struct EditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             editorHeader
-            ImageCanvas(editedImage: editedImage, originalImage: session.originalPreview)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ZStack {
+                ImageCanvas(editedImage: editedImage, originalImage: session.originalPreview)
+                if selectedTool == .crop {
+                    CropOverlay(
+                        crop: Binding(
+                            get: { session.cropState },
+                            set: { session.setCropPreview($0) }
+                        ),
+                        onEditingChanged: {
+                            $0 ? session.beginCropEdit() : session.endCropEdit()
+                        }
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             AppToolbar {
                 ForEach(Tool.allCases, id: \.self) { tool in
@@ -53,6 +67,15 @@ struct EditorView: View {
         } message: {
             Text(saveError ?? "")
         }
+        .onChange(of: scenePhase) { phase in
+            guard phase != .active else { return }
+            Task { try? await session.flushPendingSave() }
+        }
+        .sheet(isPresented: $showsExport) {
+            if let project = session.exportProject, let repository = session.projectRepository {
+                ExportView(project: project, repository: repository)
+            }
+        }
     }
 
     private var editedImage: CGImage? {
@@ -74,6 +97,9 @@ struct EditorView: View {
             Button(action: session.redo) { Image(systemName: "arrow.uturn.forward") }
                 .disabled(!session.canRedo)
                 .accessibilityLabel("Redo")
+            Button(action: { showsExport = true }) { Image(systemName: "square.and.arrow.up") }
+                .disabled(session.exportProject == nil)
+                .accessibilityLabel("Export")
             Button("Done") {
                 Task {
                     do {
@@ -93,31 +119,114 @@ struct EditorView: View {
     private var toolControls: some View {
         switch selectedTool {
         case .adjust:
-            VStack {
-                Menu {
-                    ForEach(AdjustmentKey.allCases) { key in
-                        Button(key.title) { selectedAdjustment = key }
+            ScrollView {
+                VStack(spacing: 18) {
+                    ForEach(AdjustmentCategory.allCases, id: \.self) { category in
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(category.rawValue).font(.headline)
+                            ForEach(AdjustmentKey.allCases.filter { $0.descriptor.category == category }) { key in
+                                let descriptor = key.descriptor
+                                AppSlider(
+                                    title: descriptor.title,
+                                    value: Binding(
+                                        get: { session.value(for: key) },
+                                        set: { session.setValue($0, for: key) }
+                                    ),
+                                    range: descriptor.range,
+                                    displayValue: descriptor.displayValue,
+                                    onEditingChanged: {
+                                        $0 ? session.beginAdjustment(key) : session.endAdjustment()
+                                    },
+                                    onReset: { session.resetCurrent(key) }
+                                )
+                            }
+                        }
                     }
-                } label: {
-                    Label(selectedAdjustment.title, systemImage: "slider.horizontal.3")
                 }
-                AppSlider(
-                    title: selectedAdjustment.title,
-                    value: Binding(
-                        get: { session.value(for: selectedAdjustment) },
-                        set: { session.setValue($0, for: selectedAdjustment) }
-                    ),
-                    range: selectedAdjustment.range
-                )
             }
+            .frame(maxHeight: 260)
             .padding()
         case .filter:
-            Text("Filter recipes plug into EditState without changing the original.")
-                .font(.footnote).foregroundStyle(.secondary).padding()
+            filterControls
         case .crop:
-            Text("Crop and geometry are stored as normalized non-destructive edits.")
-                .font(.footnote).foregroundStyle(.secondary).padding()
+            cropControls
         }
+    }
+
+    private var filterControls: some View {
+        VStack {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(FilterDefinition.all) { definition in
+                        Button(definition.title) {
+                            session.updateFilter(definition.id == "original" ? nil : FilterConfig(identifier: definition.id))
+                        }
+                        .buttonStyle(.plain)
+                        .labelStyle(.titleAndIcon)
+                        .overlay(alignment: .top) {
+                            FilterThumbnail(definition: definition, session: session)
+                                .offset(y: -54)
+                        }
+                        .padding(.top, 58)
+                    }
+                }
+            }
+            if let config = session.filterConfig {
+                AppSlider(
+                    title: "Intensity",
+                    value: Binding(
+                        get: { session.filterConfig?.intensity ?? 0 },
+                        set: { session.setFilterPreview(FilterConfig(identifier: config.identifier, intensity: $0)) }
+                    ),
+                    range: 0...100,
+                    onEditingChanged: { $0 ? session.beginFilterEdit() : session.endFilterEdit() }
+                )
+            }
+        }
+        .padding()
+    }
+
+    private var cropControls: some View {
+        VStack(spacing: 12) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(CropAspectRatio.allCases, id: \.self) { ratio in
+                        Button(ratio.title) {
+                            var crop = session.cropState
+                            crop.aspectRatio = ratio
+                            crop.normalizedRect = CropLayout.rect(
+                                for: ratio,
+                                sourceAspectRatio: session.sourceAspectRatio
+                            )
+                            session.updateCrop(crop)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+            AppSlider(
+                title: "Rotate",
+                value: Binding(
+                    get: { session.cropState.rotationDegrees },
+                    set: {
+                        var crop = session.cropState
+                        crop.rotationDegrees = $0
+                        session.setCropPreview(crop)
+                    }
+                ),
+                range: -45...45,
+                displayValue: { String(format: "%+.0f°", $0) },
+                onEditingChanged: { $0 ? session.beginCropEdit(summary: "Rotate") : session.endCropEdit() }
+            )
+            HStack {
+                Button("↶ 90°") { var value = session.cropState; value.rotateLeft(); session.updateCrop(value, summary: "Rotate Left") }
+                Button("90° ↷") { var value = session.cropState; value.rotateRight(); session.updateCrop(value, summary: "Rotate Right") }
+                Button("Flip H") { var value = session.cropState; value.isFlippedHorizontally.toggle(); session.updateCrop(value, summary: "Flip Horizontal") }
+                Button("Flip V") { var value = session.cropState; value.isFlippedVertically.toggle(); session.updateCrop(value, summary: "Flip Vertical") }
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
     }
 }
 
@@ -128,5 +237,24 @@ private extension EditorView.Tool {
         case .filter: "camera.filters"
         case .crop: "crop"
         }
+    }
+}
+
+private struct FilterThumbnail: View {
+    let definition: FilterDefinition
+    let session: EditorSession
+    @State private var image: CGImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(decorative: image, scale: 1).resizable().scaledToFill()
+            } else {
+                Color.secondary.opacity(0.15)
+            }
+        }
+        .frame(width: 64, height: 48)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .task { image = await session.filterThumbnail(for: definition) }
     }
 }

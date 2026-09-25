@@ -147,10 +147,37 @@ actor PhotoProjectRepository {
             }
             try Self.thumbnailData(from: source).write(to: thumbnailURL, options: .atomic)
         }
-        updated.markUpdated(version: stored.currentVersion + 1)
+        if project.editState != stored.editState {
+            updated.recordVersion(
+                version: stored.currentVersion + 1,
+                state: project.editState,
+                summary: "Edit"
+            )
+        } else {
+            updated.markMetadataUpdated()
+        }
         projects[index] = updated
         try write(projects)
         return updated
+    }
+
+    func rename(id: UUID, title: String) throws -> PhotoProject {
+        guard var project = try project(id: id) else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        project.title = title.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty ?? "Untitled Photo"
+        return try update(project)
+    }
+
+    func restore(projectID: UUID, version: Int) throws -> PhotoProject {
+        guard var project = try project(id: projectID) else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        guard let snapshot = project.versions.first(where: { $0.number == version }) else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        project.editState = snapshot.editState
+        return try update(project)
     }
 
     func delete(id: UUID) throws {
@@ -180,8 +207,33 @@ actor PhotoProjectRepository {
         return try Data(contentsOf: url, options: .mappedIfSafe)
     }
 
+    func originalFileURL(for project: PhotoProject) throws -> URL {
+        let url = try storageURL(for: project.originalImagePath)
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw ProjectRepositoryError.missingOriginal
+        }
+        return url
+    }
+
     func thumbnailData(for project: PhotoProject) throws -> Data {
         try Data(contentsOf: storageURL(for: project.thumbnailPath), options: .mappedIfSafe)
+    }
+
+    func replaceThumbnail(_ image: CGImage, for project: PhotoProject) throws {
+        let output = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            output,
+            UTType.jpeg.identifier as CFString,
+            1,
+            nil
+        ) else { throw ProjectRepositoryError.unreadableImage }
+        CGImageDestinationAddImage(destination, image, [
+            kCGImageDestinationLossyCompressionQuality: 0.82
+        ] as CFDictionary)
+        guard CGImageDestinationFinalize(destination) else {
+            throw ProjectRepositoryError.unreadableImage
+        }
+        try (output as Data).write(to: storageURL(for: project.thumbnailPath), options: .atomic)
     }
 
     func fileExists(atRelativePath path: String) throws -> Bool {

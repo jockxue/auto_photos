@@ -118,3 +118,66 @@ struct ImageCanvas: View {
             }
     }
 }
+
+struct CropOverlay: View {
+    @Binding var crop: CropState
+    let onEditingChanged: (Bool) -> Void
+    @State private var startRect: NormalizedRect?
+
+    var body: some View {
+        GeometryReader { proxy in
+            let rect = crop.normalizedRect.clamped
+            Rectangle()
+                .stroke(.white, style: StrokeStyle(lineWidth: 2, dash: [7, 4]))
+                .background(Color.black.opacity(0.08))
+                .frame(
+                    width: proxy.size.width * rect.width,
+                    height: proxy.size.height * rect.height
+                )
+                .position(
+                    x: proxy.size.width * (rect.x + rect.width / 2),
+                    y: proxy.size.height * (rect.y + rect.height / 2)
+                )
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if startRect == nil {
+                                startRect = crop.normalizedRect
+                                onEditingChanged(true)
+                            }
+                            guard var updated = startRect else { return }
+                            updated.x += value.translation.width / proxy.size.width
+                            updated.y += value.translation.height / proxy.size.height
+                            crop.normalizedRect = updated.clamped
+                        }
+                        .onEnded { _ in
+                            startRect = nil
+                            onEditingChanged(false)
+                        }
+                )
+                .simultaneousGesture(
+                    MagnificationGesture()
+                        .onChanged { scale in
+                            if startRect == nil {
+                                startRect = crop.normalizedRect
+                                onEditingChanged(true)
+                            }
+                            guard let initial = startRect else { return }
+                            let width = initial.width / scale
+                            let height = initial.height / scale
+                            crop.normalizedRect = NormalizedRect(
+                                x: initial.x + (initial.width - width) / 2,
+                                y: initial.y + (initial.height - height) / 2,
+                                width: width,
+                                height: height
+                            ).clamped
+                        }
+                        .onEnded { _ in
+                            startRect = nil
+                            onEditingChanged(false)
+                        }
+                )
+        }
+        .accessibilityLabel("Crop frame")
+    }
+}

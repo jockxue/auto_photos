@@ -10,6 +10,8 @@ struct HomeView: View {
     @State private var presentsPicker = false
     @State private var isImporting = false
     @State private var statusMessage: String?
+    @State private var renameProject: PhotoProject?
+    @State private var renameText = ""
 
     var body: some View {
         NavigationStack {
@@ -73,6 +75,8 @@ struct HomeView: View {
                                                 Text(project.title).font(.headline)
                                                 Text("\(project.originalPixelWidth) × \(project.originalPixelHeight) · \(project.originalFormat.rawValue.uppercased()) · v\(project.currentVersion)")
                                                     .font(.caption).foregroundStyle(.secondary)
+                                                Text("Created \(project.createdAt.formatted(date: .abbreviated, time: .omitted)) · Updated \(project.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                                                    .font(.caption2).foregroundStyle(.secondary)
                                             }
                                             Spacer()
                                             if project.isFavorite {
@@ -84,6 +88,10 @@ struct HomeView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
+                                    Button("Rename") {
+                                        renameProject = project
+                                        renameText = project.title
+                                    }
                                     Button(project.isFavorite ? "Remove Favorite" : "Favorite") {
                                         Task { await toggleFavorite(project) }
                                     }
@@ -114,6 +122,17 @@ struct HomeView: View {
                         project: payload.project,
                         repository: repository
                     )
+                }
+            }
+            .alert("Rename Project", isPresented: Binding(
+                get: { renameProject != nil },
+                set: { if !$0 { renameProject = nil } }
+            )) {
+                TextField("Project name", text: $renameText)
+                Button("Cancel", role: .cancel) {}
+                Button("Save") {
+                    guard let project = renameProject else { return }
+                    Task { await rename(project, to: renameText) }
                 }
             }
         }
@@ -198,6 +217,16 @@ struct HomeView: View {
             await reloadProjects()
         } catch {
             statusMessage = "Favorite could not be updated: \(error.localizedDescription)"
+        }
+    }
+
+    private func rename(_ project: PhotoProject, to title: String) async {
+        do {
+            _ = try await repository.rename(id: project.id, title: title)
+            renameProject = nil
+            await reloadProjects()
+        } catch {
+            statusMessage = "Project could not be renamed: \(error.localizedDescription)"
         }
     }
 }

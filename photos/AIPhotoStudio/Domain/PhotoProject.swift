@@ -5,6 +5,36 @@ enum PhotoFormat: String, Codable, Sendable {
     case jpeg, heic, png
 }
 
+struct ImageVersion: Identifiable, Codable, Equatable, Sendable {
+    let id: UUID
+    let number: Int
+    let editState: EditState
+    let commandSummary: String
+    let createdAt: Date
+    let generatedAsset: ImageAssetReference?
+
+    init(
+        id: UUID = UUID(),
+        number: Int,
+        editState: EditState,
+        commandSummary: String,
+        createdAt: Date = .now,
+        generatedAsset: ImageAssetReference? = nil
+    ) {
+        self.id = id
+        self.number = number
+        self.editState = editState
+        self.commandSummary = commandSummary
+        self.createdAt = createdAt
+        self.generatedAsset = generatedAsset
+    }
+}
+
+struct ImageAssetReference: Codable, Equatable, Sendable {
+    let identifier: String
+    let relativePath: String
+}
+
 /// Persisted project metadata. The original file is immutable and referenced by
 /// relative path; completing an edit only updates this recipe and metadata.
 struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
@@ -24,6 +54,7 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
     private(set) var updatedAt: Date
     /// Starts at 1 and advances once for each successful repository update.
     private(set) var currentVersion: Int
+    private(set) var versions: [ImageVersion]
     var isFavorite: Bool
     var editState: EditState
 
@@ -39,6 +70,7 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         createdAt: Date = .now,
         updatedAt: Date = .now,
         currentVersion: Int = 1,
+        versions: [ImageVersion]? = nil,
         isFavorite: Bool = false,
         editState: EditState = .init()
     ) {
@@ -53,13 +85,27 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.currentVersion = currentVersion
+        self.versions = versions ?? [
+            ImageVersion(number: currentVersion, editState: editState, commandSummary: "Created")
+        ]
         self.isFavorite = isFavorite
         self.editState = editState
     }
 
-    mutating func markUpdated(version: Int, at date: Date = .now) {
+    mutating func recordVersion(
+        version: Int,
+        state: EditState,
+        summary: String,
+        at date: Date = .now
+    ) {
         precondition(version > currentVersion)
         currentVersion = version
+        editState = state
+        versions.append(ImageVersion(number: version, editState: state, commandSummary: summary))
+        updatedAt = date
+    }
+
+    mutating func markMetadataUpdated(at date: Date = .now) {
         updatedAt = date
     }
 
@@ -67,7 +113,7 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         case id, title, originalAssetIdentifier, originalImagePath, thumbnailPath
         case originalFilename // Legacy first-phase key.
         case originalFormat, originalPixelWidth, originalPixelHeight
-        case createdAt, updatedAt, currentVersion, isFavorite, editState
+        case createdAt, updatedAt, currentVersion, versions, isFavorite, editState
     }
 
     init(from decoder: Decoder) throws {
@@ -89,8 +135,10 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         createdAt = try values.decode(Date.self, forKey: .createdAt)
         updatedAt = try values.decode(Date.self, forKey: .updatedAt)
         currentVersion = try values.decodeIfPresent(Int.self, forKey: .currentVersion) ?? 1
-        isFavorite = try values.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
         editState = try values.decode(EditState.self, forKey: .editState)
+        versions = try values.decodeIfPresent([ImageVersion].self, forKey: .versions)
+            ?? [ImageVersion(number: currentVersion, editState: editState, commandSummary: "Migrated")]
+        isFavorite = try values.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -106,6 +154,7 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         try values.encode(createdAt, forKey: .createdAt)
         try values.encode(updatedAt, forKey: .updatedAt)
         try values.encode(currentVersion, forKey: .currentVersion)
+        try values.encode(versions, forKey: .versions)
         try values.encode(isFavorite, forKey: .isFavorite)
         try values.encode(editState, forKey: .editState)
     }

@@ -21,17 +21,21 @@ struct AppSlider: View {
     let title: String
     @Binding var value: Double
     let range: ClosedRange<Double>
+    var displayValue: ((Double) -> String)?
+    var onEditingChanged: (Bool) -> Void = { _ in }
+    var onReset: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(title)
+                Button(title, action: onReset)
+                    .buttonStyle(.plain)
                 Spacer()
-                Text(value, format: .number.precision(.fractionLength(2)))
+                Text(displayValue?(value) ?? value.formatted(.number.precision(.fractionLength(2))))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
-            Slider(value: $value, in: range)
+            Slider(value: $value, in: range, onEditingChanged: onEditingChanged)
                 .tint(.indigo)
         }
     }
