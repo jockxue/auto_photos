@@ -79,7 +79,7 @@ struct ImageViewportMapper: Equatable {
     }
 
     func sourceRect(movingImageFor sourceRect: NormalizedRect, byViewport translation: CGSize) -> NormalizedRect {
-        sourceRect(moving: sourceRect, byViewport: CGSize(
+        self.sourceRect(moving: sourceRect, byViewport: CGSize(
             width: -translation.width,
             height: -translation.height
         ))
