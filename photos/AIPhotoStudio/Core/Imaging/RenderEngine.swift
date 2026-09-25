@@ -57,7 +57,7 @@ final class CoreImageRenderEngine: RenderEngineProtocol, @unchecked Sendable {
         guard let output = context.createCGImage(
             image,
             from: image.extent.integral,
-            format: request.original.metadata.hasAlpha ? .RGBA8 : .RGBX8,
+            format: .RGBA8,
             colorSpace: request.original.metadata.colorSpace ?? outputColorSpace
         ) else {
             throw RenderError.outputCreationFailed

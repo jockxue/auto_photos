@@ -13,7 +13,7 @@ struct ImageMetadata: Equatable, @unchecked Sendable {
     static func == (lhs: ImageMetadata, rhs: ImageMetadata) -> Bool {
         let lhsColorSpaceName = lhs.colorSpace?.name.map { $0 as String }
         let rhsColorSpaceName = rhs.colorSpace?.name.map { $0 as String }
-        lhs.pixelSize == rhs.pixelSize
+        return lhs.pixelSize == rhs.pixelSize
             && lhs.orientation == rhs.orientation
             && lhs.scale == rhs.scale
             && lhs.hasAlpha == rhs.hasAlpha
