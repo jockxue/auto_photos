@@ -4,6 +4,7 @@ import SwiftUI
 struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
     let project: PhotoProject
+    let editState: EditState
     let repository: PhotoProjectRepository
 
     @State private var format = ExportFormat.jpeg
@@ -17,6 +18,7 @@ struct ExportView: View {
     @State private var exportedURL: URL?
     @State private var savedToPhotos = false
     @State private var exportTask: Task<Void, Never>?
+    @State private var operation = ExportOperationState()
 
     var body: some View {
         NavigationStack {
@@ -50,7 +52,7 @@ struct ExportView: View {
                     Text(errorMessage).foregroundStyle(.red)
                 }
                 Button("Export") { startExport() }
-                    .disabled(exportTask != nil)
+                    .disabled(!operation.canStart)
                 if let exportedURL {
                     Button("Save to Photos") {
                         Task {
@@ -66,17 +68,19 @@ struct ExportView: View {
                         sharePayload = SharePayload(fileURL: exportedURL, deleteWhenReleased: false)
                     }
                 }
-                if exportTask != nil {
-                    Button("Cancel", role: .destructive) {
+                if operation.isRunning {
+                    Button(operation.isCancelling ? "Cancelling…" : "Cancel", role: .destructive) {
+                        operation.requestCancellation()
                         exportTask?.cancel()
-                        exportTask = nil
                     }
+                    .disabled(operation.isCancelling)
                 }
             }
             .navigationTitle("Export")
             .toolbar { Button("Close") { dismiss() } }
             .sheet(item: $sharePayload) { ShareSheet(payload: $0) }
             .onDisappear {
+                exportTask?.cancel()
                 if let exportedURL { try? FileManager.default.removeItem(at: exportedURL) }
             }
         }
@@ -104,12 +108,19 @@ struct ExportView: View {
     }
 
     private func startExport() {
+        guard operation.begin() else { return }
         if case .custom = size {
             size = .custom(width: customWidth, height: customHeight)
         }
         errorMessage = nil
         let service = ExportService(repository: repository)
-        let request = ExportRequest(project: project, format: format, jpegQuality: quality, size: size)
+        let request = ExportRequest(
+            project: project,
+            editState: editState,
+            format: format,
+            jpegQuality: quality,
+            size: size
+        )
         exportTask = Task {
             do {
                 let url = try await service.export(request) { value in
@@ -122,6 +133,7 @@ struct ExportView: View {
                 errorMessage = error.localizedDescription
             }
             exportTask = nil
+            operation.finish()
         }
     }
 }

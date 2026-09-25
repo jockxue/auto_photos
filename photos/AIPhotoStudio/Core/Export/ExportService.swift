@@ -41,18 +41,72 @@ enum ExportSize: Equatable, Sendable {
 struct ExportPlan: Equatable, Sendable {
     let maximumDimension: Int?
 
-    static func make(size: ExportSize, outputAspectRatio: Double, originalLongEdge: Int) -> ExportPlan {
-        let requested: Int?
-        switch size {
-        case .original: requested = nil
-        case .fourK: requested = 3840
-        case .pixels2048: requested = 2048
-        case .custom(let width, let height):
-            let safeWidth = min(max(width, 64), 20_000)
-            let safeHeight = min(max(height, 64), 20_000)
-            requested = outputAspectRatio >= 1 ? safeWidth : safeHeight
+    static func make(
+        size: ExportSize,
+        outputSize: CGSize
+    ) throws -> ExportPlan {
+        guard outputSize.width > 0, outputSize.height > 0 else {
+            throw ExportError.invalidDimensions
         }
-        return ExportPlan(maximumDimension: requested.map { min($0, originalLongEdge) })
+        let width = Double(outputSize.width)
+        let height = Double(outputSize.height)
+        let longEdge = max(width, height)
+        let scale: Double
+        let maximumDimension: Int?
+        switch size {
+        case .original:
+            scale = 1
+            maximumDimension = nil
+        case .fourK:
+            scale = min(1, 3840 / longEdge)
+            maximumDimension = Int(floor(longEdge * scale))
+        case .pixels2048:
+            scale = min(1, 2048 / longEdge)
+            maximumDimension = Int(floor(longEdge * scale))
+        case .custom(let requestedWidth, let requestedHeight):
+            let safeWidth = min(max(requestedWidth, 64), 20_000)
+            let safeHeight = min(max(requestedHeight, 64), 20_000)
+            scale = min(1, min(
+                Double(safeWidth) / width,
+                Double(safeHeight) / height
+            ))
+            maximumDimension = Int(floor(longEdge * scale))
+        }
+        guard width * height * scale * scale <= Double(ImageMemoryPolicy.maximumRenderedPixels) else {
+            throw ExportError.memoryBudgetExceeded
+        }
+        return ExportPlan(maximumDimension: maximumDimension)
+    }
+}
+
+enum ImageMemoryPolicy {
+    /// One RGBA8 output is at most ~96 MB. Core Image and encoding still add
+    /// overhead, so larger sources are rejected until a tiled renderer exists.
+    static let maximumRenderedPixels = 24_000_000
+}
+
+enum GeometryOutputPlanner {
+    static func outputSize(
+        originalWidth: Int,
+        originalHeight: Int,
+        orientation: CGImagePropertyOrientation,
+        crop: NormalizedRect,
+        rotationDegrees: Double
+    ) -> CGSize {
+        let swapsAxes = orientation == .left
+            || orientation == .leftMirrored
+            || orientation == .right
+            || orientation == .rightMirrored
+        let orientedWidth = Double(swapsAxes ? originalHeight : originalWidth)
+        let orientedHeight = Double(swapsAxes ? originalWidth : originalHeight)
+        let radians = rotationDegrees * .pi / 180
+        let rotatedWidth = abs(orientedWidth * cos(radians)) + abs(orientedHeight * sin(radians))
+        let rotatedHeight = abs(orientedWidth * sin(radians)) + abs(orientedHeight * cos(radians))
+        let normalizedCrop = crop.clamped
+        return CGSize(
+            width: CGFloat(rotatedWidth * normalizedCrop.width),
+            height: CGFloat(rotatedHeight * normalizedCrop.height)
+        )
     }
 }
 
@@ -63,10 +117,34 @@ enum ExportStage: Double, Sendable {
     case completed = 1
 }
 
+struct ExportOperationState: Equatable, Sendable {
+    private(set) var isRunning = false
+    private(set) var isCancelling = false
+    var canStart: Bool { !isRunning }
+
+    mutating func begin() -> Bool {
+        guard canStart else { return false }
+        isRunning = true
+        isCancelling = false
+        return true
+    }
+
+    mutating func requestCancellation() {
+        guard isRunning else { return }
+        isCancelling = true
+    }
+
+    mutating func finish() {
+        isRunning = false
+        isCancelling = false
+    }
+}
+
 enum ExportError: LocalizedError, Sendable {
     case unsupportedFormat(ExportFormat)
     case encodingFailed
     case invalidDimensions
+    case memoryBudgetExceeded
     case cancelled
 
     var errorDescription: String? {
@@ -74,6 +152,7 @@ enum ExportError: LocalizedError, Sendable {
         case .unsupportedFormat(let format): "\(format.rawValue.uppercased()) encoding is unavailable on this device."
         case .encodingFailed: "The exported image could not be encoded."
         case .invalidDimensions: "The requested export dimensions are invalid."
+        case .memoryBudgetExceeded: "This edit exceeds the 24-megapixel export safety budget."
         case .cancelled: "Export was cancelled."
         }
     }
@@ -81,17 +160,20 @@ enum ExportError: LocalizedError, Sendable {
 
 struct ExportRequest: Sendable {
     let project: PhotoProject
+    let editState: EditState
     let format: ExportFormat
     let jpegQuality: JPEGQuality
     let size: ExportSize
 
     init(
         project: PhotoProject,
+        editState: EditState? = nil,
         format: ExportFormat,
         jpegQuality: JPEGQuality = .high,
         size: ExportSize = .original
     ) {
         self.project = project
+        self.editState = editState ?? project.editState
         self.format = format
         self.jpegQuality = jpegQuality
         self.size = size
@@ -152,20 +234,22 @@ final class ExportService: ExportServiceProtocol, @unchecked Sendable {
                 colorSpace: colorSpace
             )
         )
-        let crop = request.project.editState.geometry.normalizedRect.clamped
-        let croppedWidth = Double(request.project.originalPixelWidth) * crop.width
-        let croppedHeight = Double(request.project.originalPixelHeight) * crop.height
-        guard croppedWidth > 0, croppedHeight > 0 else { throw ExportError.invalidDimensions }
-        let plan = ExportPlan.make(
+        let geometrySize = GeometryOutputPlanner.outputSize(
+            originalWidth: request.project.originalPixelWidth,
+            originalHeight: request.project.originalPixelHeight,
+            orientation: orientation,
+            crop: request.editState.geometry.normalizedRect,
+            rotationDegrees: request.editState.geometry.rotationDegrees
+        )
+        let plan = try ExportPlan.make(
             size: request.size,
-            outputAspectRatio: croppedWidth / croppedHeight,
-            originalLongEdge: max(Int(croppedWidth), Int(croppedHeight))
+            outputSize: geometrySize
         )
 
         progress(.rendering)
         let rendered = try renderer.render(RenderRequest(
             original: original,
-            edits: request.project.editState,
+            edits: request.editState,
             maximumDimension: plan.maximumDimension.map(CGFloat.init)
         ))
         try Task.checkCancellation()
@@ -193,6 +277,10 @@ final class ExportService: ExportServiceProtocol, @unchecked Sendable {
             try? FileManager.default.removeItem(at: outputURL)
             throw ExportError.encodingFailed
         }
+        if Task.isCancelled {
+            try? FileManager.default.removeItem(at: outputURL)
+            throw CancellationError()
+        }
         progress(.completed)
         return outputURL
     }
@@ -208,9 +296,25 @@ final class ExportService: ExportServiceProtocol, @unchecked Sendable {
         height: Int
     ) -> [CFString: Any] {
         var result: [CFString: Any] = [:]
-        for key in [kCGImagePropertyExifDictionary, kCGImagePropertyIPTCDictionary,
-                    kCGImagePropertyTIFFDictionary, kCGImagePropertyGPSDictionary] {
-            if let value = source[key] { result[key] = value }
+        if var exif = source[kCGImagePropertyExifDictionary] as? [CFString: Any] {
+            exif[kCGImagePropertyExifPixelXDimension] = width
+            exif[kCGImagePropertyExifPixelYDimension] = height
+            exif.removeValue(forKey: "Orientation" as CFString)
+            result[kCGImagePropertyExifDictionary] = exif
+        }
+        if var tiff = source[kCGImagePropertyTIFFDictionary] as? [CFString: Any] {
+            tiff[kCGImagePropertyTIFFOrientation] = 1
+            for key in ["PixelWidth", "PixelHeight", "ImageWidth", "ImageLength"] {
+                tiff.removeValue(forKey: key as CFString)
+            }
+            result[kCGImagePropertyTIFFDictionary] = tiff
+        }
+        // IPTC and GPS are intentionally preserved for an explicit
+        // metadata-preserving export. A future privacy toggle can omit GPS.
+        for key in [kCGImagePropertyIPTCDictionary, kCGImagePropertyGPSDictionary] {
+            if let value = source[key] {
+                result[key] = value
+            }
         }
         result[kCGImagePropertyOrientation] = 1
         result[kCGImagePropertyPixelWidth] = width

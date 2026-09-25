@@ -12,7 +12,7 @@ struct EditorView: View {
     @StateObject private var session: EditorSession
     @State private var selectedTool: Tool = .adjust
     @State private var saveError: String?
-    @State private var showsExport = false
+    @State private var exportPayload: EditorExportPayload?
 
     init(
         original: OriginalImage = ImageSourceFactory.makeTestImage(),
@@ -29,20 +29,19 @@ struct EditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             editorHeader
-            ZStack {
-                ImageCanvas(editedImage: editedImage, originalImage: session.originalPreview)
-                if selectedTool == .crop {
-                    CropOverlay(
-                        crop: Binding(
-                            get: { session.cropState },
-                            set: { session.setCropPreview($0) }
-                        ),
-                        onEditingChanged: {
-                            $0 ? session.beginCropEdit() : session.endCropEdit()
-                        }
-                    )
+            ImageCanvas(
+                editedImage: editedImage,
+                originalImage: selectedTool == .crop
+                    ? (session.cropSourcePreview ?? session.originalPreview)
+                    : session.originalPreview,
+                crop: selectedTool == .crop ? Binding(
+                    get: { session.cropState },
+                    set: { session.setCropPreview($0) }
+                ) : nil,
+                onCropEditingChanged: {
+                    $0 ? session.beginCropEdit() : session.endCropEdit()
                 }
-            }
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             AppToolbar {
@@ -69,12 +68,23 @@ struct EditorView: View {
         }
         .onChange(of: scenePhase) { phase in
             guard phase != .active else { return }
-            Task { try? await session.flushPendingSave() }
-        }
-        .sheet(isPresented: $showsExport) {
-            if let project = session.exportProject, let repository = session.projectRepository {
-                ExportView(project: project, repository: repository)
+            Task {
+                do {
+                    try await session.flushPendingSave()
+                } catch {
+                    saveError = error.localizedDescription
+                }
             }
+        }
+        .onChange(of: session.persistenceError) { error in
+            if let error { saveError = error }
+        }
+        .sheet(item: $exportPayload) { payload in
+            ExportView(
+                project: payload.project,
+                editState: payload.editState,
+                repository: payload.repository
+            )
         }
     }
 
@@ -97,7 +107,20 @@ struct EditorView: View {
             Button(action: session.redo) { Image(systemName: "arrow.uturn.forward") }
                 .disabled(!session.canRedo)
                 .accessibilityLabel("Redo")
-            Button(action: { showsExport = true }) { Image(systemName: "square.and.arrow.up") }
+            Button(action: {
+                Task {
+                    do {
+                        let (project, state, repository) = try await session.prepareExport()
+                        exportPayload = EditorExportPayload(
+                            project: project,
+                            editState: state,
+                            repository: repository
+                        )
+                    } catch {
+                        saveError = error.localizedDescription
+                    }
+                }
+            }) { Image(systemName: "square.and.arrow.up") }
                 .disabled(session.exportProject == nil)
                 .accessibilityLabel("Export")
             Button("Done") {
@@ -207,10 +230,10 @@ struct EditorView: View {
             AppSlider(
                 title: "Rotate",
                 value: Binding(
-                    get: { session.cropState.rotationDegrees },
+                    get: { session.cropState.fineRotationDegrees },
                     set: {
                         var crop = session.cropState
-                        crop.rotationDegrees = $0
+                        crop.fineRotationDegrees = $0
                         session.setCropPreview(crop)
                     }
                 ),
@@ -228,6 +251,13 @@ struct EditorView: View {
         }
         .padding()
     }
+}
+
+private struct EditorExportPayload: Identifiable {
+    let id = UUID()
+    let project: PhotoProject
+    let editState: EditState
+    let repository: PhotoProjectRepository
 }
 
 private extension EditorView.Tool {

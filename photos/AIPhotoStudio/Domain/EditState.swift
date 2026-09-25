@@ -220,7 +220,8 @@ enum CropAspectRatio: String, CaseIterable, Codable, Hashable, Sendable {
 
 struct CropState: Codable, Equatable, Sendable {
     var normalizedRect = NormalizedRect()
-    var rotationDegrees = 0.0
+    var quarterTurns = 0
+    var fineRotationDegrees = 0.0
     var aspectRatio = CropAspectRatio.free
     var isFlippedHorizontally = false
     var isFlippedVertically = false
@@ -231,23 +232,25 @@ struct CropState: Codable, Equatable, Sendable {
         set { normalizedRect = newValue.clamped }
     }
 
+    var rotationDegrees: Double {
+        get { Double(quarterTurns) * 90 + fineRotationDegrees }
+        set {
+            let turns = Int((newValue / 90).rounded())
+            quarterTurns = ((turns % 4) + 4) % 4
+            fineRotationDegrees = min(max(newValue - Double(turns) * 90, -45), 45)
+        }
+    }
+
     mutating func rotateLeft() {
-        rotationDegrees = Self.normalizedAngle(rotationDegrees - 90)
+        quarterTurns = (quarterTurns + 3) % 4
     }
 
     mutating func rotateRight() {
-        rotationDegrees = Self.normalizedAngle(rotationDegrees + 90)
-    }
-
-    private static func normalizedAngle(_ angle: Double) -> Double {
-        var value = angle.truncatingRemainder(dividingBy: 360)
-        if value > 180 { value -= 360 }
-        if value < -180 { value += 360 }
-        return value
+        quarterTurns = (quarterTurns + 1) % 4
     }
 
     private enum CodingKeys: String, CodingKey {
-        case normalizedRect, crop, rotationDegrees, aspectRatio
+        case normalizedRect, crop, rotationDegrees, quarterTurns, fineRotationDegrees, aspectRatio
         case isFlippedHorizontally, isFlippedVertically
     }
 
@@ -258,7 +261,18 @@ struct CropState: Codable, Equatable, Sendable {
         normalizedRect = try values.decodeIfPresent(NormalizedRect.self, forKey: .normalizedRect)
             ?? values.decodeIfPresent(NormalizedRect.self, forKey: .crop)
             ?? .init()
-        rotationDegrees = try values.decodeIfPresent(Double.self, forKey: .rotationDegrees) ?? 0
+        if let storedTurns = try values.decodeIfPresent(Int.self, forKey: .quarterTurns) {
+            quarterTurns = ((storedTurns % 4) + 4) % 4
+            fineRotationDegrees = min(max(
+                try values.decodeIfPresent(Double.self, forKey: .fineRotationDegrees) ?? 0,
+                -45
+            ), 45)
+        } else {
+            let angle = try values.decodeIfPresent(Double.self, forKey: .rotationDegrees) ?? 0
+            let turns = Int((angle / 90).rounded())
+            quarterTurns = ((turns % 4) + 4) % 4
+            fineRotationDegrees = min(max(angle - Double(turns) * 90, -45), 45)
+        }
         aspectRatio = try values.decodeIfPresent(CropAspectRatio.self, forKey: .aspectRatio) ?? .free
         isFlippedHorizontally = try values.decodeIfPresent(Bool.self, forKey: .isFlippedHorizontally) ?? false
         isFlippedVertically = try values.decodeIfPresent(Bool.self, forKey: .isFlippedVertically) ?? false
@@ -268,6 +282,8 @@ struct CropState: Codable, Equatable, Sendable {
         var values = encoder.container(keyedBy: CodingKeys.self)
         try values.encode(normalizedRect, forKey: .normalizedRect)
         try values.encode(rotationDegrees, forKey: .rotationDegrees)
+        try values.encode(quarterTurns, forKey: .quarterTurns)
+        try values.encode(fineRotationDegrees, forKey: .fineRotationDegrees)
         try values.encode(aspectRatio, forKey: .aspectRatio)
         try values.encode(isFlippedHorizontally, forKey: .isFlippedHorizontally)
         try values.encode(isFlippedVertically, forKey: .isFlippedVertically)

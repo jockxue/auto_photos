@@ -60,13 +60,28 @@ struct AITask: Identifiable, Codable, Equatable, Sendable {
 
     mutating func succeed(result: ImageAssetReference? = nil, at date: Date = .now) throws {
         guard status == .processing else { throw AITaskInvariantError.invalidTransition }
-        if type != .enhance && type != .portrait && result == nil {
+        if type != .enhance
+            && type != .portrait
+            && type != .naturalLanguageEdit
+            && result == nil {
             throw AITaskInvariantError.missingResult
         }
         resultImage = result
         progress = 1
         status = .success
         completedAt = date
+    }
+
+    mutating func succeed(output: AIOutput, at date: Date = .now) throws {
+        switch output {
+        case .parameterProposal:
+            guard type == .enhance || type == .portrait || type == .naturalLanguageEdit else {
+                throw AITaskInvariantError.missingResult
+            }
+            try succeed(result: nil, at: date)
+        case .generatedImage(let asset):
+            try succeed(result: asset, at: date)
+        }
     }
 
     mutating func fail(safeMessage: String, at date: Date = .now) throws {

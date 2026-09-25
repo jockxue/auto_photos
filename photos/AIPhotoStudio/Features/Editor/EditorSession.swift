@@ -14,6 +14,8 @@ final class EditorSession: ObservableObject {
     @Published private(set) var document: PhotoDocument
     @Published private(set) var preview: PreviewState = .loading
     @Published private(set) var originalPreview: CGImage?
+    @Published private(set) var cropSourcePreview: CGImage?
+    @Published private(set) var persistenceError: String?
 
     private let renderer: any RenderEngineProtocol
     private let repository: PhotoProjectRepository?
@@ -21,6 +23,7 @@ final class EditorSession: ObservableObject {
     private var history = EditHistory()
     private let filterThumbnailCache = FilterThumbnailCache()
     private var renderTask: Task<Void, Never>?
+    private var cropRenderTask: Task<Void, Never>?
     private var autosaveTask: Task<Void, Never>?
 
     init(
@@ -35,14 +38,21 @@ final class EditorSession: ObservableObject {
         self.renderer = renderer
         renderPreview(debounced: false)
         renderOriginal()
+        renderCropSource()
     }
 
     var editState: EditState { document.editState }
     var cropState: CropState { document.editState.geometry }
     var filterConfig: FilterConfig? { document.editState.filter }
     var sourceAspectRatio: Double {
-        let size = document.original.metadata.pixelSize
-        return size.height == 0 ? 1 : size.width / size.height
+        let size = GeometryOutputPlanner.outputSize(
+            originalWidth: Int(document.original.metadata.pixelSize.width),
+            originalHeight: Int(document.original.metadata.pixelSize.height),
+            orientation: document.original.metadata.orientation,
+            crop: .init(),
+            rotationDegrees: cropState.rotationDegrees
+        )
+        return size.height == 0 ? 1 : Double(size.width / size.height)
     }
     var exportProject: PhotoProject? { project }
     var projectRepository: PhotoProjectRepository? { repository }
@@ -151,6 +161,7 @@ final class EditorSession: ObservableObject {
         document.editState.geometry = crop
         history.record(kind: .crop, before: before, after: document.editState, summary: summary)
         renderPreview()
+        renderCropSource()
         scheduleAutosave()
     }
 
@@ -161,6 +172,7 @@ final class EditorSession: ObservableObject {
     func setCropPreview(_ crop: CropState) {
         document.editState.geometry = crop
         renderPreview()
+        renderCropSource()
     }
 
     func endCropEdit() {
@@ -171,18 +183,35 @@ final class EditorSession: ObservableObject {
     /// Persists only the project/edit recipe. The immutable original file is not rewritten.
     func complete() async throws {
         autosaveTask?.cancel()
+        await autosaveTask?.value
         try await persist()
     }
 
     private func persist() async throws {
-        guard var project, let repository else { return }
-        project.editState = document.editState
-        self.project = try await repository.update(
-            project,
-            commandSummary: history.latestSummary ?? "Edit"
-        )
-        if case .ready(let image) = preview, let savedProject = self.project {
-            try await repository.replaceThumbnail(image, for: savedProject)
+        guard let project, let repository else { return }
+        let summary = history.latestSummary ?? "Edit"
+        do {
+            self.project = try await repository.saveEditState(
+                projectID: project.id,
+                editState: document.editState,
+                commandSummary: summary
+            )
+            persistenceError = nil
+        } catch {
+            persistenceError = error.localizedDescription
+            throw error
+        }
+        if let savedProject = self.project {
+            let renderer = renderer
+            let request = RenderRequest(
+                original: document.original,
+                edits: document.editState,
+                maximumDimension: 512
+            )
+            let thumbnail = try await Task.detached(priority: .utility) {
+                try renderer.render(request).cgImage
+            }.value
+            try await repository.replaceThumbnail(thumbnail, for: savedProject)
         }
     }
 
@@ -205,8 +234,15 @@ final class EditorSession: ObservableObject {
     }
 
     func flushPendingSave() async throws {
-        autosaveTask?.cancel()
         try await complete()
+    }
+
+    func prepareExport() async throws -> (PhotoProject, EditState, PhotoProjectRepository) {
+        try await flushPendingSave()
+        guard let project, let repository else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        return (project, document.editState, repository)
     }
 
     private func renderPreview(debounced: Bool = true) {
@@ -245,7 +281,7 @@ final class EditorSession: ObservableObject {
             } catch is CancellationError {
                 return
             } catch {
-                // Completion surfaces errors explicitly; background autosave retries on next edit/flush.
+                persistenceError = error.localizedDescription
             }
         }
     }
@@ -257,6 +293,30 @@ final class EditorSession: ObservableObject {
             originalPreview = try? await Task.detached(priority: .userInitiated) {
                 try renderer.render(request).cgImage
             }.value
+        }
+    }
+
+    private func renderCropSource() {
+        cropRenderTask?.cancel()
+        let renderer = renderer
+        var edits = document.editState
+        edits.geometry.normalizedRect = .init()
+        let request = RenderRequest(
+            original: document.original,
+            edits: edits,
+            maximumDimension: 2048
+        )
+        cropRenderTask = Task {
+            do {
+                try await Task.sleep(nanoseconds: 40_000_000)
+                let image = try await Task.detached(priority: .userInitiated) {
+                    try renderer.render(request).cgImage
+                }.value
+                guard !Task.isCancelled else { return }
+                cropSourcePreview = image
+            } catch {
+                return
+            }
         }
     }
 }

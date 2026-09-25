@@ -28,6 +28,10 @@ struct RenderPipeline: Sendable {
         ]
     }
 
+    var configuredStages: [RenderStage] {
+        [.orientation] + processors.map { $0.stage }
+    }
+
     func process(
         original: CIImage,
         orientation: CGImagePropertyOrientation,
@@ -38,20 +42,28 @@ struct RenderPipeline: Sendable {
     }
 }
 
+enum AdjustmentMapping {
+    static func highlightShadow(_ values: Adjustments) -> (highlight: Double, shadow: Double) {
+        (
+            1 - max(0, values.highlights) / 100,
+            max(0, values.shadows) / 100
+        )
+    }
+
+    static func clarity(_ value: Double) -> (unsharpIntensity: Double, blurRadius: Double) {
+        if value >= 0 {
+            return (min(value / 100, 1), 0)
+        }
+        return (0, min(abs(value) / 100 * 1.5, 1.5))
+    }
+}
+
 private struct GeometryProcessor: RenderStageProcessor {
     let stage = RenderStage.geometry
 
     func process(_ source: CIImage, edits: EditState) -> CIImage {
         let geometry = edits.geometry
-        let extent = source.extent
-        let crop = geometry.normalizedRect.clamped
-        var image = source.cropped(to: CGRect(
-            x: extent.minX + extent.width * crop.x,
-            y: extent.minY + extent.height * crop.y,
-            width: extent.width * crop.width,
-            height: extent.height * crop.height
-        ).intersection(extent))
-
+        var image = source
         if geometry.rotationDegrees != 0 {
             image = image.transformed(by: CGAffineTransform(
                 rotationAngle: geometry.rotationDegrees * .pi / 180
@@ -67,7 +79,14 @@ private struct GeometryProcessor: RenderStageProcessor {
                 .translatedBy(x: -center.x, y: -center.y)
             image = image.transformed(by: transform)
         }
-        return image
+        let extent = image.extent
+        let crop = geometry.normalizedRect.clamped
+        return image.cropped(to: CGRect(
+            x: extent.minX + extent.width * crop.x,
+            y: extent.minY + extent.height * crop.y,
+            width: extent.width * crop.width,
+            height: extent.height * crop.height
+        ).intersection(extent))
     }
 }
 
@@ -81,17 +100,20 @@ private struct LightProcessor: RenderStageProcessor {
             kCIInputBrightnessKey: value.brightness / 400,
             kCIInputContrastKey: 1 + value.contrast / 200
         ])
+        let highlightShadow = AdjustmentMapping.highlightShadow(value)
         image = image.applyingFilter("CIHighlightShadowAdjust", parameters: [
-            "inputHighlightAmount": 1 - value.highlights / 140,
-            "inputShadowAmount": value.shadows / 100
+            "inputHighlightAmount": highlightShadow.highlight,
+            "inputShadowAmount": highlightShadow.shadow
         ])
         let black = value.blacks / 500
         let white = value.whites / 500
+        let shadowPoint = 0.25 + min(0, value.shadows) / 500
+        let highlightPoint = 0.75 - min(0, value.highlights) / 500
         return image.applyingFilter("CIToneCurve", parameters: [
             "inputPoint0": CIVector(x: 0, y: black),
-            "inputPoint1": CIVector(x: 0.25, y: 0.25),
+            "inputPoint1": CIVector(x: 0.25, y: shadowPoint),
             "inputPoint2": CIVector(x: 0.5, y: 0.5),
-            "inputPoint3": CIVector(x: 0.75, y: 0.75),
+            "inputPoint3": CIVector(x: 0.75, y: highlightPoint),
             "inputPoint4": CIVector(x: 1, y: 1 + white)
         ])
     }
@@ -129,11 +151,17 @@ private struct DetailProcessor: RenderStageProcessor {
                 "inputSharpness": value.sharpness / 50
             ])
         }
-        if value.clarity != 0 {
+        let clarity = AdjustmentMapping.clarity(value.clarity)
+        if clarity.unsharpIntensity > 0 {
             image = image.applyingFilter("CIUnsharpMask", parameters: [
                 kCIInputRadiusKey: 2.5,
-                kCIInputIntensityKey: value.clarity / 100
+                kCIInputIntensityKey: clarity.unsharpIntensity
             ])
+        } else if clarity.blurRadius > 0 {
+            let extent = image.extent
+            image = image.applyingFilter("CIGaussianBlur", parameters: [
+                kCIInputRadiusKey: clarity.blurRadius
+            ]).cropped(to: extent)
         }
         if value.noiseReduction > 0 {
             image = image.applyingFilter("CINoiseReduction", parameters: [

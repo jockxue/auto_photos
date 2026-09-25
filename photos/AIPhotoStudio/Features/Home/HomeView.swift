@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var statusMessage: String?
     @State private var renameProject: PhotoProject?
     @State private var renameText = ""
+    @State private var versionProject: PhotoProject?
 
     var body: some View {
         NavigationStack {
@@ -88,6 +89,9 @@ struct HomeView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
+                                    Button("Versions") {
+                                        versionProject = project
+                                    }
                                     Button("Rename") {
                                         renameProject = project
                                         renameText = project.title
@@ -123,6 +127,11 @@ struct HomeView: View {
                         repository: repository
                     )
                 }
+            }
+            .sheet(item: $versionProject, onDismiss: {
+                Task { await reloadProjects() }
+            }) { project in
+                VersionHistoryView(project: project, repository: repository)
             }
             .alert("Rename Project", isPresented: Binding(
                 get: { renameProject != nil },
@@ -227,6 +236,68 @@ struct HomeView: View {
             await reloadProjects()
         } catch {
             statusMessage = "Project could not be renamed: \(error.localizedDescription)"
+        }
+    }
+}
+
+private struct VersionHistoryView: View {
+    @Environment(\.dismiss) private var dismiss
+    let project: PhotoProject
+    let repository: PhotoProjectRepository
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            List(project.versions.sorted { $0.number > $1.number }) { version in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Version \(version.number)").font(.headline)
+                        Text(version.commandSummary).foregroundStyle(.secondary)
+                        Text(version.createdAt.formatted()).font(.caption)
+                    }
+                    Spacer()
+                    if version.number == project.currentVersion {
+                        Text("Current").font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Button("Restore") {
+                            Task {
+                                do {
+                                    let restored = try await repository.restore(
+                                        projectID: project.id,
+                                        version: version.number
+                                    )
+                                    let data = try await repository.originalData(for: restored)
+                                    guard let original = ImageSourceFactory.decode(
+                                        data: data,
+                                        maximumDimension: 512
+                                    ) else {
+                                        throw ProjectRepositoryError.unreadableImage
+                                    }
+                                    let thumbnail = try CoreImageRenderEngine().render(RenderRequest(
+                                        original: original,
+                                        edits: restored.editState,
+                                        maximumDimension: 512
+                                    )).cgImage
+                                    try await repository.replaceThumbnail(thumbnail, for: restored)
+                                    dismiss()
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Versions")
+            .toolbar { Button("Done") { dismiss() } }
+            .alert("Restore Failed", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 }

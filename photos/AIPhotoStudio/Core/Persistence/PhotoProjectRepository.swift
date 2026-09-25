@@ -1,4 +1,5 @@
 import Foundation
+import CoreImage
 import ImageIO
 import UniformTypeIdentifiers
 
@@ -16,7 +17,7 @@ enum ProjectRepositoryError: LocalizedError {
         switch self {
         case .unsupportedFormat: "Only HEIC, JPEG, and PNG photos are supported."
         case .unreadableImage: "The selected photo could not be read."
-        case .imageTooLarge: "This photo exceeds the 200-megapixel safety limit."
+        case .imageTooLarge: "This photo exceeds the 24-megapixel memory safety limit."
         case .missingOriginal: "The project's original photo is missing."
         case .unsafePath: "The project contains an unsafe storage path."
         case .immutableOriginal: "The immutable original reference cannot be changed."
@@ -27,10 +28,22 @@ enum ProjectRepositoryError: LocalizedError {
 }
 
 actor PhotoProjectRepository {
+    private struct DeleteJournal: Codable {
+        struct Entry: Codable {
+            let relativePath: String
+            let stagedName: String
+        }
+
+        let projectID: UUID
+        let entries: [Entry]
+    }
+
     private let root: URL
     private let projectsURL: URL
     private let originalsURL: URL
     private let thumbnailsURL: URL
+    private let trashURL: URL
+    private let generatedURL: URL
     private let encoder: JSONEncoder
     private let decoder = JSONDecoder()
 
@@ -40,6 +53,8 @@ actor PhotoProjectRepository {
         projectsURL = self.root.appendingPathComponent("projects.json")
         originalsURL = self.root.appendingPathComponent("Originals", isDirectory: true)
         thumbnailsURL = self.root.appendingPathComponent("Thumbnails", isDirectory: true)
+        trashURL = self.root.appendingPathComponent(".Trash", isDirectory: true)
+        generatedURL = self.root.appendingPathComponent("Generated", isDirectory: true)
         encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
@@ -50,6 +65,7 @@ actor PhotoProjectRepository {
         guard FileManager.default.fileExists(atPath: projectsURL.path) else { return [] }
         try prepareDirectories()
         let projects = try decoder.decode([PhotoProject].self, from: Data(contentsOf: projectsURL))
+        try recoverDeleteTransactions(projects: projects)
         for project in projects {
             _ = try storageURL(for: project.originalImagePath)
             let thumbnailURL = try storageURL(for: project.thumbnailPath)
@@ -180,26 +196,120 @@ actor PhotoProjectRepository {
             throw ProjectRepositoryError.projectNotFound
         }
         project.editState = snapshot.editState
-        return try update(project)
+        return try update(project, commandSummary: "Restore v\(version)")
+    }
+
+    /// Actor-isolated edit save avoids stale caller versions during autosave,
+    /// Done, background flush, and export flush races.
+    func saveEditState(
+        projectID: UUID,
+        editState: EditState,
+        commandSummary: String
+    ) throws -> PhotoProject {
+        var projects = try allProjects()
+        guard let index = projects.firstIndex(where: { $0.id == projectID }) else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        var project = projects[index]
+        if project.editState != editState {
+            project.recordVersion(
+                version: project.currentVersion + 1,
+                state: editState,
+                summary: commandSummary
+            )
+            projects[index] = project
+            try write(projects)
+        }
+        return project
+    }
+
+    func appendGeneratedVersion(
+        projectID: UUID,
+        asset: ImageAssetReference,
+        editState: EditState,
+        summary: String
+    ) throws -> PhotoProject {
+        let assetURL = try generatedAssetURL(for: asset.relativePath)
+        guard FileManager.default.fileExists(atPath: assetURL.path) else {
+            throw ProjectRepositoryError.missingOriginal
+        }
+        var projects = try allProjects()
+        guard let index = projects.firstIndex(where: { $0.id == projectID }) else {
+            throw ProjectRepositoryError.projectNotFound
+        }
+        var project = projects[index]
+        project.recordVersion(
+            version: project.currentVersion + 1,
+            state: editState,
+            summary: summary,
+            generatedAsset: asset
+        )
+        projects[index] = project
+        try write(projects)
+        return project
     }
 
     func delete(id: UUID) throws {
         var projects = try allProjects()
-        guard let project = projects.first(where: { $0.id == id }) else { return }
+        let transactionURL = trashURL.appendingPathComponent(id.uuidString, isDirectory: true)
+        guard let project = projects.first(where: { $0.id == id }) else {
+            try? FileManager.default.removeItem(at: transactionURL)
+            return
+        }
+        let referencedByOthers = Set(projects
+            .filter { $0.id != id }
+            .flatMap { $0.versions.compactMap { $0.generatedAsset?.relativePath } })
+        var relativePaths = [project.originalImagePath, project.thumbnailPath]
+        let generatedPaths = Set(project.versions.compactMap { $0.generatedAsset?.relativePath })
+        relativePaths += generatedPaths.filter {
+            (try? generatedAssetURL(for: $0)) != nil && !referencedByOthers.contains($0)
+        }
+        relativePaths.append("Cache/\(project.id.uuidString)")
+        let entries = try relativePaths.enumerated().compactMap { index, relativePath -> DeleteJournal.Entry? in
+            let source = try storageURL(for: relativePath)
+            guard FileManager.default.fileExists(atPath: source.path) else { return nil }
+            return DeleteJournal.Entry(
+                relativePath: relativePath,
+                stagedName: "\(index)-\(source.lastPathComponent)"
+            )
+        }
+        try FileManager.default.createDirectory(at: transactionURL, withIntermediateDirectories: true)
+        let journal = DeleteJournal(projectID: id, entries: entries)
+        try encoder.encode(journal).write(
+            to: transactionURL.appendingPathComponent("journal.json"),
+            options: .atomic
+        )
+        var moves: [(source: URL, staged: URL)] = []
+        do {
+            for entry in entries {
+                let source = try storageURL(for: entry.relativePath)
+                let staged = transactionURL.appendingPathComponent(entry.stagedName)
+                try FileManager.default.moveItem(at: source, to: staged)
+                moves.append((source, staged))
+            }
+        } catch {
+            for move in moves.reversed() {
+                try? FileManager.default.moveItem(at: move.staged, to: move.source)
+            }
+            throw error
+        }
+
         projects.removeAll { $0.id == id }
-        try write(projects)
-        var firstError: Error?
         do {
-            try removeIfPresent(try storageURL(for: project.originalImagePath))
+            try write(projects)
         } catch {
-            firstError = error
+            for move in moves.reversed() {
+                try? FileManager.default.createDirectory(
+                    at: move.source.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try? FileManager.default.moveItem(at: move.staged, to: move.source)
+            }
+            throw error
         }
-        do {
-            try removeIfPresent(try storageURL(for: project.thumbnailPath))
-        } catch {
-            firstError = firstError ?? error
-        }
-        if let firstError { throw firstError }
+        // Metadata commit is authoritative. Cleanup is idempotent and retried
+        // on the next repository read if immediate removal fails.
+        try? FileManager.default.removeItem(at: transactionURL)
     }
 
     func originalData(for project: PhotoProject) throws -> Data {
@@ -223,6 +333,20 @@ actor PhotoProjectRepository {
     }
 
     func replaceThumbnail(_ image: CGImage, for project: PhotoProject) throws {
+        let maximumDimension = max(image.width, image.height)
+        let thumbnail: CGImage
+        if maximumDimension > 512 {
+            let scale = 512 / CGFloat(maximumDimension)
+            let source = CIImage(cgImage: image)
+                .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+            guard let resized = CIContext(options: [.useSoftwareRenderer: false])
+                .createCGImage(source, from: source.extent.integral) else {
+                throw ProjectRepositoryError.unreadableImage
+            }
+            thumbnail = resized
+        } else {
+            thumbnail = image
+        }
         let output = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(
             output,
@@ -230,7 +354,7 @@ actor PhotoProjectRepository {
             1,
             nil
         ) else { throw ProjectRepositoryError.unreadableImage }
-        CGImageDestinationAddImage(destination, image, [
+        CGImageDestinationAddImage(destination, thumbnail, [
             kCGImageDestinationLossyCompressionQuality: 0.82
         ] as CFDictionary)
         guard CGImageDestinationFinalize(destination) else {
@@ -246,6 +370,8 @@ actor PhotoProjectRepository {
     private func prepareDirectories() throws {
         try FileManager.default.createDirectory(at: originalsURL, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: thumbnailsURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: generatedURL, withIntermediateDirectories: true)
     }
 
     private func write(_ projects: [PhotoProject]) throws {
@@ -263,7 +389,11 @@ actor PhotoProjectRepository {
     }
 
     static func validateDimensions(width: Int, height: Int) throws {
-        guard width > 0, height > 0, Int64(width) * Int64(height) <= 200_000_000 else {
+        guard
+            width > 0,
+            height > 0,
+            Int64(width) * Int64(height) <= Int64(ImageMemoryPolicy.maximumRenderedPixels)
+        else {
             throw ProjectRepositoryError.imageTooLarge
         }
     }
@@ -283,9 +413,59 @@ actor PhotoProjectRepository {
         return candidate
     }
 
+    private func generatedAssetURL(for relativePath: String) throws -> URL {
+        let candidate = try storageURL(for: relativePath)
+        let generatedRoot = generatedURL.standardizedFileURL.resolvingSymlinksInPath()
+        guard candidate.path.hasPrefix(generatedRoot.path + "/") else {
+            throw ProjectRepositoryError.unsafePath
+        }
+        return candidate
+    }
+
     private func removeIfPresent(_ url: URL) throws {
         if FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.removeItem(at: url)
+        }
+    }
+
+    private func recoverDeleteTransactions(projects: [PhotoProject]) throws {
+        guard let transactions = try? FileManager.default.contentsOfDirectory(
+            at: trashURL,
+            includingPropertiesForKeys: nil
+        ) else { return }
+        for transaction in transactions {
+            let journalURL = transaction.appendingPathComponent("journal.json")
+            guard
+                let data = try? Data(contentsOf: journalURL),
+                let journal = try? decoder.decode(DeleteJournal.self, from: data)
+            else {
+                // Unknown trash is never deleted automatically.
+                continue
+            }
+            if projects.contains(where: { $0.id == journal.projectID }) {
+                for entry in journal.entries {
+                    guard
+                        !entry.stagedName.contains("/"),
+                        !entry.stagedName.contains("\\"),
+                        URL(fileURLWithPath: entry.stagedName).lastPathComponent == entry.stagedName
+                    else {
+                        throw ProjectRepositoryError.unsafePath
+                    }
+                    let source = try storageURL(for: entry.relativePath)
+                    let staged = transaction.appendingPathComponent(entry.stagedName)
+                    guard FileManager.default.fileExists(atPath: staged.path) else { continue }
+                    if FileManager.default.fileExists(atPath: source.path) {
+                        try FileManager.default.removeItem(at: staged)
+                    } else {
+                        try FileManager.default.createDirectory(
+                            at: source.deletingLastPathComponent(),
+                            withIntermediateDirectories: true
+                        )
+                        try FileManager.default.moveItem(at: staged, to: source)
+                    }
+                }
+            }
+            try FileManager.default.removeItem(at: transaction)
         }
     }
 

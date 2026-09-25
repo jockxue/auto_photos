@@ -96,12 +96,18 @@ struct PhotoProject: Identifiable, Codable, Equatable, Sendable {
         version: Int,
         state: EditState,
         summary: String,
+        generatedAsset: ImageAssetReference? = nil,
         at date: Date = .now
     ) {
         precondition(version > currentVersion)
         currentVersion = version
         editState = state
-        versions.append(ImageVersion(number: version, editState: state, commandSummary: summary))
+        versions.append(ImageVersion(
+            number: version,
+            editState: state,
+            commandSummary: summary,
+            generatedAsset: generatedAsset
+        ))
         updatedAt = date
     }
 
