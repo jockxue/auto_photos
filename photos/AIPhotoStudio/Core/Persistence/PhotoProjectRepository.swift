@@ -118,7 +118,10 @@ actor PhotoProjectRepository {
     }
 
     @discardableResult
-    func update(_ project: PhotoProject) throws -> PhotoProject {
+    func update(
+        _ project: PhotoProject,
+        commandSummary: String = "Edit"
+    ) throws -> PhotoProject {
         var projects = try allProjects()
         var updated = project
         guard let index = projects.firstIndex(where: { $0.id == project.id }) else {
@@ -151,7 +154,7 @@ actor PhotoProjectRepository {
             updated.recordVersion(
                 version: stored.currentVersion + 1,
                 state: project.editState,
-                summary: "Edit"
+                summary: commandSummary
             )
         } else {
             updated.markMetadataUpdated()

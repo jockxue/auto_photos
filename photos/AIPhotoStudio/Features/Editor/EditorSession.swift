@@ -177,7 +177,10 @@ final class EditorSession: ObservableObject {
     private func persist() async throws {
         guard var project, let repository else { return }
         project.editState = document.editState
-        self.project = try await repository.update(project)
+        self.project = try await repository.update(
+            project,
+            commandSummary: history.latestSummary ?? "Edit"
+        )
         if case .ready(let image) = preview, let savedProject = self.project {
             try await repository.replaceThumbnail(image, for: savedProject)
         }

@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct ExportView: View {
@@ -13,6 +14,8 @@ struct ExportView: View {
     @State private var stage: ExportStage?
     @State private var errorMessage: String?
     @State private var sharePayload: SharePayload?
+    @State private var exportedURL: URL?
+    @State private var savedToPhotos = false
     @State private var exportTask: Task<Void, Never>?
 
     var body: some View {
@@ -40,7 +43,7 @@ struct ExportView: View {
                 }
                 if let stage {
                     ProgressView(value: stage.rawValue) {
-                        Text(stage == .completed ? "Saved to temporary file" : "Exporting…")
+                        Text(stage == .completed ? (savedToPhotos ? "Saved to Photos" : "Export ready") : "Exporting…")
                     }
                 }
                 if let errorMessage {
@@ -48,6 +51,21 @@ struct ExportView: View {
                 }
                 Button("Export") { startExport() }
                     .disabled(exportTask != nil)
+                if let exportedURL {
+                    Button("Save to Photos") {
+                        Task {
+                            do {
+                                try await PhotoLibrarySaver().save(fileURL: exportedURL)
+                                savedToPhotos = true
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                    Button("Share…") {
+                        sharePayload = SharePayload(fileURL: exportedURL, deleteWhenReleased: false)
+                    }
+                }
                 if exportTask != nil {
                     Button("Cancel", role: .destructive) {
                         exportTask?.cancel()
@@ -58,6 +76,9 @@ struct ExportView: View {
             .navigationTitle("Export")
             .toolbar { Button("Close") { dismiss() } }
             .sheet(item: $sharePayload) { ShareSheet(payload: $0) }
+            .onDisappear {
+                if let exportedURL { try? FileManager.default.removeItem(at: exportedURL) }
+            }
         }
     }
 
@@ -94,7 +115,7 @@ struct ExportView: View {
                 let url = try await service.export(request) { value in
                     Task { @MainActor in stage = value }
                 }
-                sharePayload = SharePayload(fileURL: url)
+                exportedURL = url
             } catch is CancellationError {
                 errorMessage = ExportError.cancelled.localizedDescription
             } catch {
