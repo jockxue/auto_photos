@@ -8,13 +8,13 @@ enum ImageSourceFactory {
         let colorSpace = CGColorSpace(name: CGColorSpace.displayP3)!
         let background = CIImage(color: CIColor(red: 0.08, green: 0.12, blue: 0.22))
             .cropped(to: CGRect(origin: .zero, size: size))
-        let glow = CIImage(
-            radialGradientCenter: CGPoint(x: size.width * 0.68, y: size.height * 0.62),
-            radius0: 10,
-            radius1: size.width * 0.65,
-            color0: CIColor(red: 1, green: 0.48, blue: 0.28, alpha: 1),
-            color1: CIColor(red: 0.12, green: 0.2, blue: 0.62, alpha: 0)
-        ).cropped(to: background.extent)
+        let glow = CIFilter(name: "CIRadialGradient", parameters: [
+            "inputCenter": CIVector(x: size.width * 0.68, y: size.height * 0.62),
+            "inputRadius0": 10,
+            "inputRadius1": size.width * 0.65,
+            "inputColor0": CIColor(red: 1, green: 0.48, blue: 0.28, alpha: 1),
+            "inputColor1": CIColor(red: 0.12, green: 0.2, blue: 0.62, alpha: 0)
+        ])?.outputImage?.cropped(to: background.extent) ?? background
         let image = glow.composited(over: background)
         return OriginalImage(
             image: image,
