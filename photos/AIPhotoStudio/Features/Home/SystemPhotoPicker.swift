@@ -6,6 +6,9 @@ import UniformTypeIdentifiers
 struct PickedPhoto {
     let data: Data
     let suggestedName: String?
+    /// Optional by design: PHPicker may withhold identifiers for privacy or for
+    /// file-provider-backed selections while still supplying image data.
+    let originalAssetIdentifier: String?
 }
 
 /// Thin SwiftUI bridge to Apple's PHPicker. UIKit is used only to host the
@@ -63,7 +66,11 @@ struct SystemPhotoPicker: UIViewControllerRepresentable {
                             throw ProjectRepositoryError.unsupportedFormat
                         }
                         let data = try await provider.dataRepresentation(for: identifier)
-                        photos.append(PickedPhoto(data: data, suggestedName: provider.suggestedName))
+                        photos.append(PickedPhoto(
+                            data: data,
+                            suggestedName: provider.suggestedName,
+                            originalAssetIdentifier: result.assetIdentifier
+                        ))
                     }
                     await MainActor.run { onSelection(photos) }
                 } catch {

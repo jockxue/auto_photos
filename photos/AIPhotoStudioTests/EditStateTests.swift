@@ -56,14 +56,60 @@ final class EditStateTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: root) }
         let repository = PhotoProjectRepository(root: root)
         let source = try makeImageData(width: 120, height: 80, type: .jpeg)
-        var project = try await repository.importPhoto(data: source, suggestedName: "Landscape.jpg")
+        var project = try await repository.importPhoto(
+            data: source,
+            suggestedName: "Landscape.jpg",
+            originalAssetIdentifier: "photos-library-id"
+        )
+        XCTAssertEqual(project.currentVersion, 1)
+        XCTAssertEqual(project.originalAssetIdentifier, "photos-library-id")
+        XCTAssertTrue(project.originalImagePath.hasPrefix("Originals/"))
+        XCTAssertTrue(project.thumbnailPath.hasPrefix("Thumbnails/"))
+        XCTAssertFalse(project.originalImagePath.hasPrefix("/"))
+        let thumbnailExists = try await repository.fileExists(atRelativePath: project.thumbnailPath)
+        XCTAssertTrue(thumbnailExists)
+
         project.editState.adjustments[.exposure] = 0.5
-        try await repository.update(project)
+        project.isFavorite = true
+        project = try await repository.update(project)
 
         let reopened = try await repository.project(id: project.id)
         let preservedSource = try await repository.originalData(for: project)
         XCTAssertEqual(reopened?.editState.adjustments.exposure, 0.5)
+        XCTAssertEqual(reopened?.currentVersion, 2)
+        XCTAssertEqual(reopened?.isFavorite, true)
         XCTAssertEqual(preservedSource, source)
+        let thumbnailData = try await repository.thumbnailData(for: project)
+        XCTAssertFalse(thumbnailData.isEmpty)
+
+        let roundTrip = try JSONDecoder().decode(
+            PhotoProject.self,
+            from: JSONEncoder().encode(project)
+        )
+        XCTAssertEqual(roundTrip, project)
+    }
+
+    func testDeletingProjectCleansOriginalAndThumbnail() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repository = PhotoProjectRepository(root: root)
+        let project = try await repository.importPhoto(
+            data: makeImageData(width: 32, height: 32, type: .png),
+            suggestedName: "Delete.png"
+        )
+        let originalExistsBeforeDelete = try await repository.fileExists(atRelativePath: project.originalImagePath)
+        let thumbnailExistsBeforeDelete = try await repository.fileExists(atRelativePath: project.thumbnailPath)
+        XCTAssertTrue(originalExistsBeforeDelete)
+        XCTAssertTrue(thumbnailExistsBeforeDelete)
+
+        try await repository.delete(id: project.id)
+
+        let reopened = try await repository.project(id: project.id)
+        let originalExistsAfterDelete = try await repository.fileExists(atRelativePath: project.originalImagePath)
+        let thumbnailExistsAfterDelete = try await repository.fileExists(atRelativePath: project.thumbnailPath)
+        XCTAssertNil(reopened)
+        XCTAssertFalse(originalExistsAfterDelete)
+        XCTAssertFalse(thumbnailExistsAfterDelete)
     }
 
     func testJPEGPNGAndHEICPortraitLandscapeImports() async throws {

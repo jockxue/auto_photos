@@ -77,8 +77,7 @@ final class EditorSession: ObservableObject {
     func complete() async throws {
         guard var project, let repository else { return }
         project.editState = document.editState
-        try await repository.update(project)
-        self.project = project
+        self.project = try await repository.update(project)
     }
 
     func renderExport() async throws -> RenderedImage {

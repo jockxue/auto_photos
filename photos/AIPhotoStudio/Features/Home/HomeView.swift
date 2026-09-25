@@ -1,4 +1,5 @@
 import Photos
+import ImageIO
 import SwiftUI
 
 struct HomeView: View {
@@ -67,18 +68,25 @@ struct HomeView: View {
                                 } label: {
                                     AppCard {
                                         HStack {
+                                            ProjectThumbnail(project: project, repository: repository)
                                             VStack(alignment: .leading) {
                                                 Text(project.title).font(.headline)
-                                                Text("\(project.originalPixelWidth) × \(project.originalPixelHeight) · \(project.originalFormat.rawValue.uppercased())")
+                                                Text("\(project.originalPixelWidth) × \(project.originalPixelHeight) · \(project.originalFormat.rawValue.uppercased()) · v\(project.currentVersion)")
                                                     .font(.caption).foregroundStyle(.secondary)
                                             }
                                             Spacer()
+                                            if project.isFavorite {
+                                                Image(systemName: "star.fill").foregroundStyle(.yellow)
+                                            }
                                             Image(systemName: "chevron.right")
                                         }
                                     }
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
+                                    Button(project.isFavorite ? "Remove Favorite" : "Favorite") {
+                                        Task { await toggleFavorite(project) }
+                                    }
                                     Button("Delete", role: .destructive) {
                                         Task { await delete(project) }
                                     }
@@ -141,7 +149,8 @@ struct HomeView: View {
             for photo in photos {
                 imported.append(try await repository.importPhoto(
                     data: photo.data,
-                    suggestedName: photo.suggestedName
+                    suggestedName: photo.suggestedName,
+                    originalAssetIdentifier: photo.originalAssetIdentifier
                 ))
             }
             await reloadProjects()
@@ -180,10 +189,50 @@ struct HomeView: View {
             statusMessage = "Project could not be deleted: \(error.localizedDescription)"
         }
     }
+
+    private func toggleFavorite(_ project: PhotoProject) async {
+        do {
+            var updated = project
+            updated.isFavorite.toggle()
+            _ = try await repository.update(updated)
+            await reloadProjects()
+        } catch {
+            statusMessage = "Favorite could not be updated: \(error.localizedDescription)"
+        }
+    }
 }
 
 private struct EditorPayload: Identifiable {
     var id: UUID { project.id }
     let project: PhotoProject
     let original: OriginalImage
+}
+
+private struct ProjectThumbnail: View {
+    let project: PhotoProject
+    let repository: PhotoProjectRepository
+    @State private var image: CGImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(decorative: image, scale: 1)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "photo")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 54, height: 54)
+        .background(.quaternary)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .task(id: project.currentVersion) {
+            guard
+                let data = try? await repository.thumbnailData(for: project),
+                let source = CGImageSourceCreateWithData(data as CFData, nil)
+            else { return }
+            image = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        }
+    }
 }
