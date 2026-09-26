@@ -18,7 +18,7 @@ enum RecipePaletteAnalyzer {
     static func analyze(samples: [RecipeSample]) -> ReferencePalette {
         var bins = Array(repeating: BinAccumulator(), count: hueCenters.count)
         for sample in samples {
-            let hsl = hslComponents(sample)
+            let hsl = ColorSpace.hsl(from: ColorSpace.RGBColor(red: sample.red, green: sample.green, blue: sample.blue))
             guard hsl.saturation >= minimumChroma else { continue }
             for index in hueCenters.indices {
                 let weight = softWeight(hue: hsl.hue, center: hueCenters[index])
@@ -34,7 +34,7 @@ enum RecipePaletteAnalyzer {
                 means[index].pixelRatio = bins[index].weight / totalWeight
             }
             for sample in samples {
-                let hsl = hslComponents(sample)
+                let hsl = ColorSpace.hsl(from: ColorSpace.RGBColor(red: sample.red, green: sample.green, blue: sample.blue))
                 guard hsl.saturation >= minimumChroma else { continue }
                 for index in hueCenters.indices {
                     let weight = softWeight(hue: hsl.hue, center: hueCenters[index])
@@ -58,45 +58,13 @@ enum RecipePaletteAnalyzer {
     }
 
     static func circularHueDistance(_ first: Double, _ second: Double) -> Double {
-        let delta = abs(first - second).truncatingRemainder(dividingBy: 1)
-        return min(delta, 1 - delta)
+        ColorSpace.circularHueDistance(first, second)
     }
 
     private static func softWeight(hue: Double, center: Double) -> Double {
-        let distance = circularHueDistance(hue, center)
+        let distance = ColorSpace.circularHueDistance(hue, center)
         guard distance < hueHalfWidth else { return 0 }
         return 1 - distance / hueHalfWidth
-    }
-
-    private static func hslComponents(_ sample: RecipeSample) -> HSL {
-        let red = min(max(sample.red, 0), 1)
-        let green = min(max(sample.green, 0), 1)
-        let blue = min(max(sample.blue, 0), 1)
-        let maxChannel = max(red, green, blue)
-        let minChannel = min(red, green, blue)
-        let delta = maxChannel - minChannel
-        let lightness = (maxChannel + minChannel) / 2
-        guard delta > 0 else { return HSL(hue: 0, saturation: 0, lightness: lightness) }
-
-        let saturation = lightness > 0.5
-            ? delta / (2 - maxChannel - minChannel)
-            : delta / (maxChannel + minChannel)
-        let hue: Double
-        switch maxChannel {
-        case red:
-            hue = (green - blue) / delta + (green < blue ? 6 : 0)
-        case green:
-            hue = (blue - red) / delta + 2
-        default:
-            hue = (red - green) / delta + 4
-        }
-        return HSL(hue: (hue / 6).truncatingRemainder(dividingBy: 1), saturation: saturation, lightness: lightness)
-    }
-
-    private struct HSL {
-        var hue: Double
-        var saturation: Double
-        var lightness: Double
     }
 
     private struct BinAccumulator {
@@ -106,7 +74,7 @@ enum RecipePaletteAnalyzer {
         var sumSin = 0.0
         var sumCos = 0.0
 
-        mutating func add(_ hsl: HSL, weight sampleWeight: Double) {
+        mutating func add(_ hsl: ColorSpace.HSLColor, weight sampleWeight: Double) {
             let angle = hsl.hue * 2 * Double.pi
             weight += sampleWeight
             weightedSaturation += hsl.saturation * sampleWeight
@@ -117,10 +85,8 @@ enum RecipePaletteAnalyzer {
 
         func mean() -> BinMean {
             guard weight > 0 else { return BinMean() }
-            var hue = atan2(sumSin, sumCos) / (2 * Double.pi)
-            if hue < 0 { hue += 1 }
             return BinMean(
-                hue: hue,
+                hue: ColorSpace.circularHueMean(sumSin: sumSin, sumCos: sumCos),
                 saturation: weightedSaturation / weight,
                 lightness: weightedLightness / weight
             )
@@ -136,9 +102,9 @@ enum RecipePaletteAnalyzer {
         var saturationVariance = 0.0
         var lightnessVariance = 0.0
 
-        mutating func addVariance(_ hsl: HSL, weight sampleWeight: Double, binWeight: Double) {
+        mutating func addVariance(_ hsl: ColorSpace.HSLColor, weight sampleWeight: Double, binWeight: Double) {
             guard binWeight > 0 else { return }
-            let hueDistance = RecipePaletteAnalyzer.circularHueDistance(hsl.hue, hue)
+            let hueDistance = ColorSpace.circularHueDistance(hsl.hue, hue)
             hueVariance += sampleWeight * hueDistance * hueDistance / binWeight
             let saturationDelta = hsl.saturation - saturation
             saturationVariance += sampleWeight * saturationDelta * saturationDelta / binWeight

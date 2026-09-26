@@ -1,161 +1,542 @@
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
-	classes = {};
+	classes = {
+	};
 	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA0000000000000000000001 /* AIPhotoStudioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000001; };
-		AA0000000000000000000002 /* EditState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002; };
-		AA0000000000000000000003 /* PhotoDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000003; };
-		AA0000000000000000000004 /* RenderEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000004; };
-		AA0000000000000000000005 /* ImageSourceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005; };
-		AA0000000000000000000006 /* EditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000006; };
-		AA0000000000000000000007 /* SwiftDataEditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000007; };
-		AA0000000000000000000008 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000008; };
-		AA0000000000000000000009 /* EditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000009; };
-		AA000000000000000000000A /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000A; };
-		AA000000000000000000000B /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000B; };
-		AA000000000000000000000C /* EditStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000C; };
-		AA000000000000000000000D /* AIPhotoStudio.app in Dependencies */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000010; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		AA000000000000000000000E /* PhotoProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000E; };
-		AA000000000000000000000F /* PhotoProjectRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000F; };
-		AA0000000000000000000010 /* ImageCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000012; };
-		AA0000000000000000000011 /* SystemPhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000013; };
-		AA0000000000000000000012 /* FilterEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000014; };
-		AA0000000000000000000013 /* RenderPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000015; };
-		AA0000000000000000000014 /* EditHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000016; };
-		AA0000000000000000000015 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000017; };
-		AA0000000000000000000016 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000018; };
-		AA0000000000000000000017 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000019; };
-		AA0000000000000000000018 /* AIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001A; };
-		AA0000000000000000000019 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001B; };
-		AA000000000000000000001A /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001C; };
-		AA000000000000000000001B /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001D; };
-		AA000000000000000000001E /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000026; };
-		AA000000000000000000001F /* RecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000027; };
-		AA0000000000000000000020 /* RecipeToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000028; };
-		AA0000000000000000000021 /* RecipeColorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000029; };
-		AA0000000000000000000022 /* RecipeCurveAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002A; };
-		AA0000000000000000000023 /* RecipeTextureAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002B; };
-		AA0000000000000000000024 /* RecipeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002C; };
-		AA0000000000000000000025 /* RecipeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002D; };
-		AA0000000000000000000026 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002E; };
-		AA0000000000000000000027 /* RecipeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002F; };
-		AA0000000000000000000030 /* RecipePaletteAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000030; };
-		AA0000000000000000000031 /* RecipePaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000031; };
-		AA000000000000000000001C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000021; };
-		AA000000000000000000001D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000025; };
+		AA0000000000000000000001 /* App/AIPhotoStudioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000001 /* App/AIPhotoStudioApp.swift */; };
+		AA0000000000000000000002 /* Domain/EditState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* Domain/EditState.swift */; };
+		AA0000000000000000000003 /* Domain/PhotoDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000003 /* Domain/PhotoDocument.swift */; };
+		AA0000000000000000000004 /* Core/Imaging/RenderEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000004 /* Core/Imaging/RenderEngine.swift */; };
+		AA0000000000000000000005 /* Core/Imaging/ImageSourceFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005 /* Core/Imaging/ImageSourceFactory.swift */; };
+		AA0000000000000000000006 /* Core/Persistence/EditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */; };
+		AA0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */; };
+		AA0000000000000000000008 /* UIComponents/Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000008 /* UIComponents/Components.swift */; };
+		AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000009 /* Features/Editor/EditorSession.swift */; };
+		AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000A /* Features/Editor/EditorView.swift */; };
+		AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000B /* Features/Home/HomeView.swift */; };
+		AA000000000000000000000C /* EditStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000C /* EditStateTests.swift */; };
+		AA000000000000000000000E /* Domain/PhotoProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000E /* Domain/PhotoProject.swift */; };
+		AA000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */; };
+		AA0000000000000000000010 /* Features/Editor/ImageCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */; };
+		AA0000000000000000000011 /* Features/Home/SystemPhotoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000013 /* Features/Home/SystemPhotoPicker.swift */; };
+		AA0000000000000000000012 /* Core/Imaging/FilterEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000014 /* Core/Imaging/FilterEngine.swift */; };
+		AA0000000000000000000013 /* Core/Imaging/RenderPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000015 /* Core/Imaging/RenderPipeline.swift */; };
+		AA0000000000000000000014 /* Domain/EditHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000016 /* Domain/EditHistory.swift */; };
+		AA0000000000000000000015 /* Core/Export/ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000017 /* Core/Export/ExportService.swift */; };
+		AA0000000000000000000016 /* UIComponents/ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000018 /* UIComponents/ShareSheet.swift */; };
+		AA0000000000000000000017 /* Features/Editor/ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000019 /* Features/Editor/ExportView.swift */; };
+		AA0000000000000000000018 /* Domain/AIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001A /* Domain/AIModels.swift */; };
+		AA0000000000000000000019 /* Core/AI/AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001B /* Core/AI/AIService.swift */; };
+		AA000000000000000000001A /* Core/Network/APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001C /* Core/Network/APIClient.swift */; };
+		AA000000000000000000001B /* App/L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001D /* App/L10n.swift */; };
+		AA000000000000000000001C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000021 /* Localizable.strings */; };
+		AA000000000000000000001D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000025 /* InfoPlist.strings */; };
+		AA000000000000000000001E /* Domain/Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000026 /* Domain/Recipe.swift */; };
+		AA000000000000000000001F /* Core/Imaging/RecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000027 /* Core/Imaging/RecipeAnalyzer.swift */; };
+		AA0000000000000000000020 /* Core/Imaging/RecipeToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000028 /* Core/Imaging/RecipeToneAnalyzer.swift */; };
+		AA0000000000000000000021 /* Core/Imaging/RecipeColorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000029 /* Core/Imaging/RecipeColorAnalyzer.swift */; };
+		AA0000000000000000000022 /* Core/Imaging/RecipeCurveAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002A /* Core/Imaging/RecipeCurveAnalyzer.swift */; };
+		AA0000000000000000000023 /* Core/Imaging/RecipeTextureAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002B /* Core/Imaging/RecipeTextureAnalyzer.swift */; };
+		AA0000000000000000000024 /* Core/Imaging/RecipeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */; };
+		AA0000000000000000000025 /* Core/Persistence/RecipeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */; };
+		AA0000000000000000000026 /* Features/Editor/RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002E /* Features/Editor/RecipeView.swift */; };
+		AA0000000000000000000027 /* RecipeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002F /* RecipeTests.swift */; };
+		AA0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */; };
+		AA0000000000000000000031 /* RecipePaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000031 /* RecipePaletteTests.swift */; };
+		AA0000000000000000000032 /* Core/Imaging/ColorSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000032 /* Core/Imaging/ColorSpace.swift */; };
+		AA0000000000000000000033 /* ColorSpaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000033 /* ColorSpaceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CC0000000000000000000001 = {isa = PBXContainerItemProxy; containerPortal = DD0000000000000000000001; proxyType = 1; remoteGlobalIDString = EE0000000000000000000001; remoteInfo = AIPhotoStudio; };
+		CC0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EE0000000000000000000001;
+			remoteInfo = AIPhotoStudio;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		BB0000000000000000000001 /* AIPhotoStudioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AIPhotoStudioApp.swift; sourceTree = "<group>"; };
-		BB0000000000000000000002 /* EditState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/EditState.swift; sourceTree = "<group>"; };
-		BB0000000000000000000003 /* PhotoDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoDocument.swift; sourceTree = "<group>"; };
-		BB0000000000000000000004 /* RenderEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RenderEngine.swift; sourceTree = "<group>"; };
-		BB0000000000000000000005 /* ImageSourceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/ImageSourceFactory.swift; sourceTree = "<group>"; };
-		BB0000000000000000000006 /* EditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/EditStateStore.swift; sourceTree = "<group>"; };
-		BB0000000000000000000007 /* SwiftDataEditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/SwiftDataEditStateStore.swift; sourceTree = "<group>"; };
-		BB0000000000000000000008 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/Components.swift; sourceTree = "<group>"; };
-		BB0000000000000000000009 /* EditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorSession.swift; sourceTree = "<group>"; };
-		BB000000000000000000000A /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorView.swift; sourceTree = "<group>"; };
-		BB000000000000000000000B /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/HomeView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000001 /* App/AIPhotoStudioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AIPhotoStudioApp.swift; sourceTree = "<group>"; };
+		BB0000000000000000000002 /* Domain/EditState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/EditState.swift; sourceTree = "<group>"; };
+		BB0000000000000000000003 /* Domain/PhotoDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoDocument.swift; sourceTree = "<group>"; };
+		BB0000000000000000000004 /* Core/Imaging/RenderEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RenderEngine.swift; sourceTree = "<group>"; };
+		BB0000000000000000000005 /* Core/Imaging/ImageSourceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/ImageSourceFactory.swift; sourceTree = "<group>"; };
+		BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/EditStateStore.swift; sourceTree = "<group>"; };
+		BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/SwiftDataEditStateStore.swift; sourceTree = "<group>"; };
+		BB0000000000000000000008 /* UIComponents/Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/Components.swift; sourceTree = "<group>"; };
+		BB0000000000000000000009 /* Features/Editor/EditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorSession.swift; sourceTree = "<group>"; };
+		BB000000000000000000000A /* Features/Editor/EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorView.swift; sourceTree = "<group>"; };
+		BB000000000000000000000B /* Features/Home/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/HomeView.swift; sourceTree = "<group>"; };
 		BB000000000000000000000C /* EditStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditStateTests.swift; sourceTree = "<group>"; };
-		BB000000000000000000000E /* PhotoProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoProject.swift; sourceTree = "<group>"; };
-		BB000000000000000000000F /* PhotoProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/PhotoProjectRepository.swift; sourceTree = "<group>"; };
+		BB000000000000000000000E /* Domain/PhotoProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoProject.swift; sourceTree = "<group>"; };
+		BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/PhotoProjectRepository.swift; sourceTree = "<group>"; };
 		BB0000000000000000000010 /* AIPhotoStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIPhotoStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB0000000000000000000011 /* AIPhotoStudioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AIPhotoStudioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BB0000000000000000000012 /* ImageCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/ImageCanvas.swift; sourceTree = "<group>"; };
-		BB0000000000000000000013 /* SystemPhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/SystemPhotoPicker.swift; sourceTree = "<group>"; };
-		BB0000000000000000000014 /* FilterEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/FilterEngine.swift; sourceTree = "<group>"; };
-		BB0000000000000000000015 /* RenderPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RenderPipeline.swift; sourceTree = "<group>"; };
-		BB0000000000000000000016 /* EditHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/EditHistory.swift; sourceTree = "<group>"; };
-		BB0000000000000000000017 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Export/ExportService.swift; sourceTree = "<group>"; };
-		BB0000000000000000000018 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/ShareSheet.swift; sourceTree = "<group>"; };
-		BB0000000000000000000019 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/ExportView.swift; sourceTree = "<group>"; };
-		BB000000000000000000001A /* AIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/AIModels.swift; sourceTree = "<group>"; };
-		BB000000000000000000001B /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/AI/AIService.swift; sourceTree = "<group>"; };
-		BB000000000000000000001C /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Network/APIClient.swift; sourceTree = "<group>"; };
-		BB000000000000000000001D /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/L10n.swift; sourceTree = "<group>"; };
-		BB0000000000000000000026 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Recipe.swift; sourceTree = "<group>"; };
-		BB0000000000000000000027 /* RecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeAnalyzer.swift; sourceTree = "<group>"; };
-		BB0000000000000000000028 /* RecipeToneAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeToneAnalyzer.swift; sourceTree = "<group>"; };
-		BB0000000000000000000029 /* RecipeColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeColorAnalyzer.swift; sourceTree = "<group>"; };
-		BB000000000000000000002A /* RecipeCurveAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeCurveAnalyzer.swift; sourceTree = "<group>"; };
-		BB000000000000000000002B /* RecipeTextureAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeTextureAnalyzer.swift; sourceTree = "<group>"; };
-		BB000000000000000000002C /* RecipeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeEngine.swift; sourceTree = "<group>"; };
-		BB000000000000000000002D /* RecipeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/RecipeStore.swift; sourceTree = "<group>"; };
-		BB000000000000000000002E /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/RecipeView.swift; sourceTree = "<group>"; };
-		BB000000000000000000002F /* RecipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTests.swift; sourceTree = "<group>"; };
-		BB0000000000000000000030 /* RecipePaletteAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipePaletteAnalyzer.swift; sourceTree = "<group>"; };
-		BB0000000000000000000031 /* RecipePaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePaletteTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/ImageCanvas.swift; sourceTree = "<group>"; };
+		BB0000000000000000000013 /* Features/Home/SystemPhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/SystemPhotoPicker.swift; sourceTree = "<group>"; };
+		BB0000000000000000000014 /* Core/Imaging/FilterEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/FilterEngine.swift; sourceTree = "<group>"; };
+		BB0000000000000000000015 /* Core/Imaging/RenderPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RenderPipeline.swift; sourceTree = "<group>"; };
+		BB0000000000000000000016 /* Domain/EditHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/EditHistory.swift; sourceTree = "<group>"; };
+		BB0000000000000000000017 /* Core/Export/ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Export/ExportService.swift; sourceTree = "<group>"; };
+		BB0000000000000000000018 /* UIComponents/ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/ShareSheet.swift; sourceTree = "<group>"; };
+		BB0000000000000000000019 /* Features/Editor/ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/ExportView.swift; sourceTree = "<group>"; };
+		BB000000000000000000001A /* Domain/AIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/AIModels.swift; sourceTree = "<group>"; };
+		BB000000000000000000001B /* Core/AI/AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/AI/AIService.swift; sourceTree = "<group>"; };
+		BB000000000000000000001C /* Core/Network/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Network/APIClient.swift; sourceTree = "<group>"; };
+		BB000000000000000000001D /* App/L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/L10n.swift; sourceTree = "<group>"; };
 		BB000000000000000000001E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		BB000000000000000000001F /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		BB0000000000000000000020 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		BB0000000000000000000022 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		BB0000000000000000000023 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		BB0000000000000000000024 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		BB0000000000000000000026 /* Domain/Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Recipe.swift; sourceTree = "<group>"; };
+		BB0000000000000000000027 /* Core/Imaging/RecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeAnalyzer.swift; sourceTree = "<group>"; };
+		BB0000000000000000000028 /* Core/Imaging/RecipeToneAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeToneAnalyzer.swift; sourceTree = "<group>"; };
+		BB0000000000000000000029 /* Core/Imaging/RecipeColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeColorAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002A /* Core/Imaging/RecipeCurveAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeCurveAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002B /* Core/Imaging/RecipeTextureAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeTextureAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeEngine.swift; sourceTree = "<group>"; };
+		BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/RecipeStore.swift; sourceTree = "<group>"; };
+		BB000000000000000000002E /* Features/Editor/RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/RecipeView.swift; sourceTree = "<group>"; };
+		BB000000000000000000002F /* RecipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipePaletteAnalyzer.swift; sourceTree = "<group>"; };
+		BB0000000000000000000031 /* RecipePaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePaletteTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000032 /* Core/Imaging/ColorSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/ColorSpace.swift; sourceTree = "<group>"; };
+		BB0000000000000000000033 /* ColorSpaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSpaceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		FF0000000000000000000001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		FF0000000000000000000002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		FF0000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF0000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		GG0000000000000000000001 = {isa = PBXGroup; children = (GG0000000000000000000002, GG0000000000000000000003, GG0000000000000000000004, ); sourceTree = "<group>"; };
-		GG0000000000000000000002 = {isa = PBXGroup; children = (BB0000000000000000000001, BB0000000000000000000002, BB0000000000000000000003, BB0000000000000000000004, BB0000000000000000000005, BB0000000000000000000006, BB0000000000000000000007, BB0000000000000000000008, BB0000000000000000000009, BB000000000000000000000A, BB000000000000000000000B, BB000000000000000000000E, BB000000000000000000000F, BB0000000000000000000012, BB0000000000000000000013, BB0000000000000000000014, BB0000000000000000000015, BB0000000000000000000016, BB0000000000000000000017, BB0000000000000000000018, BB0000000000000000000019, BB000000000000000000001A, BB000000000000000000001B, BB000000000000000000001C, BB000000000000000000001D, BB0000000000000000000026, BB0000000000000000000027, BB0000000000000000000028, BB0000000000000000000029, BB000000000000000000002A, BB000000000000000000002B, BB000000000000000000002C, BB000000000000000000002D, BB000000000000000000002E, BB0000000000000000000030, BB0000000000000000000021, BB0000000000000000000025, ); path = AIPhotoStudio; sourceTree = "<group>"; };
-		GG0000000000000000000003 = {isa = PBXGroup; children = (BB000000000000000000000C, BB000000000000000000002F, BB0000000000000000000031, ); path = AIPhotoStudioTests; sourceTree = "<group>"; };
-		GG0000000000000000000004 = {isa = PBXGroup; children = (BB0000000000000000000010, BB0000000000000000000011, ); name = Products; sourceTree = "<group>"; };
+		GG0000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				GG0000000000000000000002 /* AIPhotoStudio */,
+				GG0000000000000000000003 /* AIPhotoStudioTests */,
+				GG0000000000000000000004 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		GG0000000000000000000002 /* AIPhotoStudio */ = {
+			isa = PBXGroup;
+			children = (
+				BB0000000000000000000001 /* App/AIPhotoStudioApp.swift */,
+				BB0000000000000000000002 /* Domain/EditState.swift */,
+				BB0000000000000000000003 /* Domain/PhotoDocument.swift */,
+				BB0000000000000000000004 /* Core/Imaging/RenderEngine.swift */,
+				BB0000000000000000000005 /* Core/Imaging/ImageSourceFactory.swift */,
+				BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */,
+				BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */,
+				BB0000000000000000000008 /* UIComponents/Components.swift */,
+				BB0000000000000000000009 /* Features/Editor/EditorSession.swift */,
+				BB000000000000000000000A /* Features/Editor/EditorView.swift */,
+				BB000000000000000000000B /* Features/Home/HomeView.swift */,
+				BB000000000000000000000E /* Domain/PhotoProject.swift */,
+				BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */,
+				BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */,
+				BB0000000000000000000013 /* Features/Home/SystemPhotoPicker.swift */,
+				BB0000000000000000000014 /* Core/Imaging/FilterEngine.swift */,
+				BB0000000000000000000015 /* Core/Imaging/RenderPipeline.swift */,
+				BB0000000000000000000016 /* Domain/EditHistory.swift */,
+				BB0000000000000000000017 /* Core/Export/ExportService.swift */,
+				BB0000000000000000000018 /* UIComponents/ShareSheet.swift */,
+				BB0000000000000000000019 /* Features/Editor/ExportView.swift */,
+				BB000000000000000000001A /* Domain/AIModels.swift */,
+				BB000000000000000000001B /* Core/AI/AIService.swift */,
+				BB000000000000000000001C /* Core/Network/APIClient.swift */,
+				BB000000000000000000001D /* App/L10n.swift */,
+				BB0000000000000000000026 /* Domain/Recipe.swift */,
+				BB0000000000000000000027 /* Core/Imaging/RecipeAnalyzer.swift */,
+				BB0000000000000000000028 /* Core/Imaging/RecipeToneAnalyzer.swift */,
+				BB0000000000000000000029 /* Core/Imaging/RecipeColorAnalyzer.swift */,
+				BB000000000000000000002A /* Core/Imaging/RecipeCurveAnalyzer.swift */,
+				BB000000000000000000002B /* Core/Imaging/RecipeTextureAnalyzer.swift */,
+				BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */,
+				BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */,
+				BB000000000000000000002E /* Features/Editor/RecipeView.swift */,
+				BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */,
+				BB0000000000000000000032 /* Core/Imaging/ColorSpace.swift */,
+				BB0000000000000000000021 /* Localizable.strings */,
+				BB0000000000000000000025 /* InfoPlist.strings */,
+			);
+			path = AIPhotoStudio;
+			sourceTree = "<group>";
+		};
+		GG0000000000000000000003 /* AIPhotoStudioTests */ = {
+			isa = PBXGroup;
+			children = (
+				BB000000000000000000000C /* EditStateTests.swift */,
+				BB000000000000000000002F /* RecipeTests.swift */,
+				BB0000000000000000000031 /* RecipePaletteTests.swift */,
+				BB0000000000000000000033 /* ColorSpaceTests.swift */,
+			);
+			path = AIPhotoStudioTests;
+			sourceTree = "<group>";
+		};
+		GG0000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BB0000000000000000000010 /* AIPhotoStudio.app */,
+				BB0000000000000000000011 /* AIPhotoStudioTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		EE0000000000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = JJ0000000000000000000002; buildPhases = (HH0000000000000000000001, FF0000000000000000000001, II0000000000000000000001, ); buildRules = (); dependencies = (); name = AIPhotoStudio; productName = AIPhotoStudio; productReference = BB0000000000000000000010; productType = "com.apple.product-type.application"; };
-		EE0000000000000000000002 = {isa = PBXNativeTarget; buildConfigurationList = JJ0000000000000000000003; buildPhases = (HH0000000000000000000002, FF0000000000000000000002, II0000000000000000000002, ); buildRules = (); dependencies = (KK0000000000000000000001, ); name = AIPhotoStudioTests; productName = AIPhotoStudioTests; productReference = BB0000000000000000000011; productType = "com.apple.product-type.bundle.unit-test"; };
+		EE0000000000000000000001 /* AIPhotoStudio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = JJ0000000000000000000002 /* Build configuration list for PBXNativeTarget "AIPhotoStudio" */;
+			buildPhases = (
+				HH0000000000000000000001 /* Sources */,
+				FF0000000000000000000001 /* Frameworks */,
+				II0000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AIPhotoStudio;
+			productName = AIPhotoStudio;
+			productReference = BB0000000000000000000010 /* AIPhotoStudio.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EE0000000000000000000002 /* AIPhotoStudioTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = JJ0000000000000000000003 /* Build configuration list for PBXNativeTarget "AIPhotoStudioTests" */;
+			buildPhases = (
+				HH0000000000000000000002 /* Sources */,
+				FF0000000000000000000002 /* Frameworks */,
+				II0000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				KK0000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = AIPhotoStudioTests;
+			productName = AIPhotoStudioTests;
+			productReference = BB0000000000000000000011 /* AIPhotoStudioTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		DD0000000000000000000001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; TargetAttributes = {EE0000000000000000000001 = {CreatedOnToolsVersion = 15.0; }; EE0000000000000000000002 = {CreatedOnToolsVersion = 15.0; TestTargetID = EE0000000000000000000001; }; }; }; buildConfigurationList = JJ0000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, "zh-Hans", "zh-Hant", ); mainGroup = GG0000000000000000000001; productRefGroup = GG0000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (EE0000000000000000000001, EE0000000000000000000002, ); };
+		DD0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					EE0000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					EE0000000000000000000002 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = EE0000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = JJ0000000000000000000001 /* Build configuration list for PBXProject "AIPhotoStudio" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+				"zh-Hant",
+			);
+			mainGroup = GG0000000000000000000001;
+			productRefGroup = GG0000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EE0000000000000000000001 /* AIPhotoStudio */,
+				EE0000000000000000000002 /* AIPhotoStudioTests */,
+			);
+		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		II0000000000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (AA000000000000000000001C, AA000000000000000000001D, ); runOnlyForDeploymentPostprocessing = 0; };
-		II0000000000000000000002 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		II0000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000001C /* Localizable.strings in Resources */,
+				AA000000000000000000001D /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		II0000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		HH0000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000000000000000000001, AA0000000000000000000002, AA0000000000000000000003, AA0000000000000000000004, AA0000000000000000000005, AA0000000000000000000006, AA0000000000000000000007, AA0000000000000000000008, AA0000000000000000000009, AA000000000000000000000A, AA000000000000000000000B, AA000000000000000000000E, AA000000000000000000000F, AA0000000000000000000010, AA0000000000000000000011, AA0000000000000000000012, AA0000000000000000000013, AA0000000000000000000014, AA0000000000000000000015, AA0000000000000000000016, AA0000000000000000000017, AA0000000000000000000018, AA0000000000000000000019, AA000000000000000000001A, AA000000000000000000001B, AA000000000000000000001E, AA000000000000000000001F, AA0000000000000000000020, AA0000000000000000000021, AA0000000000000000000022, AA0000000000000000000023, AA0000000000000000000024, AA0000000000000000000025, AA0000000000000000000026, AA0000000000000000000030, ); runOnlyForDeploymentPostprocessing = 0; };
-		HH0000000000000000000002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA000000000000000000000C, AA0000000000000000000027, AA0000000000000000000031, ); runOnlyForDeploymentPostprocessing = 0; };
+		HH0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000001 /* App/AIPhotoStudioApp.swift in Sources */,
+				AA0000000000000000000002 /* Domain/EditState.swift in Sources */,
+				AA0000000000000000000003 /* Domain/PhotoDocument.swift in Sources */,
+				AA0000000000000000000004 /* Core/Imaging/RenderEngine.swift in Sources */,
+				AA0000000000000000000005 /* Core/Imaging/ImageSourceFactory.swift in Sources */,
+				AA0000000000000000000006 /* Core/Persistence/EditStateStore.swift in Sources */,
+				AA0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift in Sources */,
+				AA0000000000000000000008 /* UIComponents/Components.swift in Sources */,
+				AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */,
+				AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */,
+				AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */,
+				AA000000000000000000000E /* Domain/PhotoProject.swift in Sources */,
+				AA000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift in Sources */,
+				AA0000000000000000000010 /* Features/Editor/ImageCanvas.swift in Sources */,
+				AA0000000000000000000011 /* Features/Home/SystemPhotoPicker.swift in Sources */,
+				AA0000000000000000000012 /* Core/Imaging/FilterEngine.swift in Sources */,
+				AA0000000000000000000013 /* Core/Imaging/RenderPipeline.swift in Sources */,
+				AA0000000000000000000014 /* Domain/EditHistory.swift in Sources */,
+				AA0000000000000000000015 /* Core/Export/ExportService.swift in Sources */,
+				AA0000000000000000000016 /* UIComponents/ShareSheet.swift in Sources */,
+				AA0000000000000000000017 /* Features/Editor/ExportView.swift in Sources */,
+				AA0000000000000000000018 /* Domain/AIModels.swift in Sources */,
+				AA0000000000000000000019 /* Core/AI/AIService.swift in Sources */,
+				AA000000000000000000001A /* Core/Network/APIClient.swift in Sources */,
+				AA000000000000000000001B /* App/L10n.swift in Sources */,
+				AA000000000000000000001E /* Domain/Recipe.swift in Sources */,
+				AA000000000000000000001F /* Core/Imaging/RecipeAnalyzer.swift in Sources */,
+				AA0000000000000000000020 /* Core/Imaging/RecipeToneAnalyzer.swift in Sources */,
+				AA0000000000000000000021 /* Core/Imaging/RecipeColorAnalyzer.swift in Sources */,
+				AA0000000000000000000022 /* Core/Imaging/RecipeCurveAnalyzer.swift in Sources */,
+				AA0000000000000000000023 /* Core/Imaging/RecipeTextureAnalyzer.swift in Sources */,
+				AA0000000000000000000024 /* Core/Imaging/RecipeEngine.swift in Sources */,
+				AA0000000000000000000025 /* Core/Persistence/RecipeStore.swift in Sources */,
+				AA0000000000000000000026 /* Features/Editor/RecipeView.swift in Sources */,
+				AA0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift in Sources */,
+				AA0000000000000000000032 /* Core/Imaging/ColorSpace.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		HH0000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000000000000000000000C /* EditStateTests.swift in Sources */,
+				AA0000000000000000000027 /* RecipeTests.swift in Sources */,
+				AA0000000000000000000031 /* RecipePaletteTests.swift in Sources */,
+				AA0000000000000000000033 /* ColorSpaceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		KK0000000000000000000001 = {isa = PBXTargetDependency; target = EE0000000000000000000001; targetProxy = CC0000000000000000000001; };
+		KK0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EE0000000000000000000001 /* AIPhotoStudio */;
+			targetProxy = CC0000000000000000000001 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		BB0000000000000000000021 /* Localizable.strings */ = {isa = PBXVariantGroup; children = (BB000000000000000000001E, BB000000000000000000001F, BB0000000000000000000020, ); name = Localizable.strings; sourceTree = "<group>"; };
-		BB0000000000000000000025 /* InfoPlist.strings */ = {isa = PBXVariantGroup; children = (BB0000000000000000000022, BB0000000000000000000023, BB0000000000000000000024, ); name = InfoPlist.strings; sourceTree = "<group>"; };
+		BB0000000000000000000021 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				BB000000000000000000001E /* en */,
+				BB000000000000000000001F /* zh-Hans */,
+				BB0000000000000000000020 /* zh-Hant */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		BB0000000000000000000025 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				BB0000000000000000000022 /* en */,
+				BB0000000000000000000023 /* zh-Hans */,
+				BB0000000000000000000024 /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		LL0000000000000000000001 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; ENABLE_STRICT_OBJC_MSGSEND = YES; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_VERSION = 5.0; }; name = Debug; };
-		LL0000000000000000000002 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; ENABLE_STRICT_OBJC_MSGSEND = YES; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_VERSION = 5.0; }; name = Release; };
-		LL0000000000000000000003 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; DEVELOPMENT_ASSET_PATHS = ""; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library."; INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively."; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; IPHONEOS_DEPLOYMENT_TARGET = 16.0; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -weak_framework SwiftData"; PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudio; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_EMIT_LOC_STRINGS = YES; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
-		LL0000000000000000000004 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library."; INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively."; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; IPHONEOS_DEPLOYMENT_TARGET = 16.0; MARKETING_VERSION = 1.0; OTHER_LDFLAGS = "$(inherited) -weak_framework SwiftData"; PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudio; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_COMPILATION_MODE = wholemodule; TARGETED_DEVICE_FAMILY = "1,2"; VALIDATE_PRODUCT = YES; }; name = Release; };
-		LL0000000000000000000005 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudioTests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AIPhotoStudio.app/AIPhotoStudio"; }; name = Debug; };
-		LL0000000000000000000006 = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudioTests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AIPhotoStudio.app/AIPhotoStudio"; }; name = Release; };
+		LL0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		LL0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		LL0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = QUA3LWC9W9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					SwiftData,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		LL0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QUA3LWC9W9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					SwiftData,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudio;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		LL0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AIPhotoStudio.app/AIPhotoStudio";
+			};
+			name = Debug;
+		};
+		LL0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.AIPhotoStudioTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AIPhotoStudio.app/AIPhotoStudio";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		JJ0000000000000000000001 = {isa = XCConfigurationList; buildConfigurations = (LL0000000000000000000001, LL0000000000000000000002, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		JJ0000000000000000000002 = {isa = XCConfigurationList; buildConfigurations = (LL0000000000000000000003, LL0000000000000000000004, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		JJ0000000000000000000003 = {isa = XCConfigurationList; buildConfigurations = (LL0000000000000000000005, LL0000000000000000000006, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		JJ0000000000000000000001 /* Build configuration list for PBXProject "AIPhotoStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LL0000000000000000000001 /* Debug */,
+				LL0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		JJ0000000000000000000002 /* Build configuration list for PBXNativeTarget "AIPhotoStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LL0000000000000000000003 /* Debug */,
+				LL0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		JJ0000000000000000000003 /* Build configuration list for PBXNativeTarget "AIPhotoStudioTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LL0000000000000000000005 /* Debug */,
+				LL0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
-	rootObject = DD0000000000000000000001;
+	rootObject = DD0000000000000000000001 /* Project object */;
 }
