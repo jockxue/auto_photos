@@ -74,6 +74,7 @@ struct RecipeView: View {
         .task { await reload() }
         .sheet(isPresented: $presentsPicker) {
             SystemPhotoPicker(
+                maximumPixelSize: 512,
                 onSelection: { photos in Task { await analyze(photos) } },
                 onCancel: {},
                 onFailure: { statusMessage = $0.localizedDescription }

@@ -99,18 +99,25 @@ actor PhotoProjectRepository {
             let height = properties[kCGImagePropertyPixelHeight] as? Int,
             width > 0, height > 0
         else { throw ProjectRepositoryError.unreadableImage }
-        try Self.validateDimensions(width: width, height: height)
+        let fitted = try Self.imageDataWithinBudget(
+            data: data,
+            source: source,
+            format: format,
+            width: width,
+            height: height
+        )
+        try Self.validateDimensions(width: fitted.width, height: fitted.height)
 
         try prepareDirectories()
         let id = UUID()
-        let filename = "\(id.uuidString).\(format.fileExtension)"
+        let filename = "\(id.uuidString).\(fitted.format.fileExtension)"
         let originalImagePath = "Originals/\(filename)"
         let thumbnailPath = "Thumbnails/\(id.uuidString).jpg"
         let originalURL = try storageURL(for: originalImagePath)
         let thumbnailURL = try storageURL(for: thumbnailPath)
         do {
-            try data.write(to: originalURL, options: .atomic)
-            try Self.thumbnailData(from: source).write(to: thumbnailURL, options: .atomic)
+            try fitted.data.write(to: originalURL, options: .atomic)
+            try Self.thumbnailData(from: fitted.source).write(to: thumbnailURL, options: .atomic)
             var projects = try allProjects()
             let title = suggestedName?.deletingPathExtension.nonEmpty ?? L10n.text("Untitled Photo")
             let project = PhotoProject(
@@ -119,9 +126,9 @@ actor PhotoProjectRepository {
                 originalAssetIdentifier: originalAssetIdentifier,
                 originalImagePath: originalImagePath,
                 thumbnailPath: thumbnailPath,
-                originalFormat: format,
-                originalPixelWidth: width,
-                originalPixelHeight: height
+                originalFormat: fitted.format,
+                originalPixelWidth: fitted.width,
+                originalPixelHeight: fitted.height
             )
             projects.append(project)
             try write(projects)
@@ -467,6 +474,49 @@ actor PhotoProjectRepository {
             }
             try FileManager.default.removeItem(at: transaction)
         }
+    }
+
+    private static func imageDataWithinBudget(
+        data: Data,
+        source: CGImageSource,
+        format: PhotoFormat,
+        width: Int,
+        height: Int
+    ) throws -> (data: Data, source: CGImageSource, format: PhotoFormat, width: Int, height: Int) {
+        let pixels = Int64(width) * Int64(height)
+        guard pixels > Int64(ImageMemoryPolicy.maximumRenderedPixels) else {
+            return (data, source, format, width, height)
+        }
+        let scale = sqrt(Double(ImageMemoryPolicy.maximumRenderedPixels) / Double(pixels))
+        let maxPixel = max(1, Int((Double(max(width, height)) * scale).rounded(.down)))
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+            kCGImageSourceShouldCacheImmediately: true
+        ] as CFDictionary) else {
+            throw ProjectRepositoryError.unreadableImage
+        }
+        let output = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            output,
+            UTType.jpeg.identifier as CFString,
+            1,
+            nil
+        ) else {
+            throw ProjectRepositoryError.unreadableImage
+        }
+        CGImageDestinationAddImage(destination, image, [
+            kCGImageDestinationLossyCompressionQuality: 0.92
+        ] as CFDictionary)
+        guard CGImageDestinationFinalize(destination) else {
+            throw ProjectRepositoryError.unreadableImage
+        }
+        let reduced = output as Data
+        guard let reducedSource = CGImageSourceCreateWithData(reduced as CFData, nil) else {
+            throw ProjectRepositoryError.unreadableImage
+        }
+        return (reduced, reducedSource, .jpeg, image.width, image.height)
     }
 
     private static func thumbnailData(from source: CGImageSource) throws -> Data {
