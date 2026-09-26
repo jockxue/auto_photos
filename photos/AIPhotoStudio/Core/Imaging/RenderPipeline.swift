@@ -134,8 +134,39 @@ private struct ColorProcessor: RenderStageProcessor {
         image = image.applyingFilter("CIColorControls", parameters: [
             kCIInputSaturationKey: max(0, 1 + value.saturation / 100)
         ])
-        return image.applyingFilter("CIVibrance", parameters: [
+        image = image.applyingFilter("CIVibrance", parameters: [
             "inputAmount": value.vibrance / 100
+        ])
+        return CurveRenderer.apply(edits.curves, to: image)
+    }
+}
+
+enum CurveRenderer {
+    static func apply(_ curves: CurveAdjustment, to image: CIImage) -> CIImage {
+        guard !curves.isIdentity else { return image }
+        let dimension = 33
+        let scale = Double(dimension - 1)
+        var samples = [Float]()
+        samples.reserveCapacity(dimension * dimension * dimension * 4)
+        for blue in 0..<dimension {
+            for green in 0..<dimension {
+                for red in 0..<dimension {
+                    let mapped = curves.lookup(
+                        red: Double(red) / scale,
+                        green: Double(green) / scale,
+                        blue: Double(blue) / scale
+                    )
+                    samples.append(Float(mapped.0))
+                    samples.append(Float(mapped.1))
+                    samples.append(Float(mapped.2))
+                    samples.append(1)
+                }
+            }
+        }
+        let data = samples.withUnsafeBytes { Data($0) }
+        return image.applyingFilter("CIColorCube", parameters: [
+            "inputCubeDimension": dimension,
+            "inputCubeData": data
         ])
     }
 }

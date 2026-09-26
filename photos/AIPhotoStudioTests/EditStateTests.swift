@@ -24,6 +24,20 @@ final class EditStateTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(EditState.self, from: data), state)
     }
 
+    func testEditStateWithoutCurvesDecodesAsIdentity() throws {
+        let json = #"{"adjustments":{},"geometry":{}}"#
+        let decoded = try JSONDecoder().decode(EditState.self, from: Data(json.utf8))
+        XCTAssertTrue(decoded.curves.isIdentity)
+    }
+
+    func testCurveLookupLiftsMidtones() {
+        var curve = ChannelCurve.identity
+        curve.setPoint(at: 2, y: 0.8)
+        XCTAssertEqual(curve.evaluated(0.5), 0.8, accuracy: 0.001)
+        XCTAssertEqual(curve.evaluated(0), 0, accuracy: 0.001)
+        XCTAssertEqual(curve.evaluated(1), 1, accuracy: 0.001)
+    }
+
     func testRenderProtocolCanBeReplacedByTestDouble() throws {
         let renderer = StubRenderer()
         let original = ImageSourceFactory.makeTestImage(size: CGSize(width: 2, height: 2))

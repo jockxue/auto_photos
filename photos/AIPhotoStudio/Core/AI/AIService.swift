@@ -8,10 +8,10 @@ enum AIError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .unsupportedCapability: "This AI capability is unavailable."
-        case .invalidRequest: "The AI request is invalid."
-        case .providerFailure: "The AI provider could not complete the request."
-        case .cancelled: "The AI task was cancelled."
+        case .unsupportedCapability: L10n.text("This AI capability is unavailable.")
+        case .invalidRequest: L10n.text("The AI request is invalid.")
+        case .providerFailure: L10n.text("The AI provider could not complete the request.")
+        case .cancelled: L10n.text("The AI task was cancelled.")
         }
     }
 }

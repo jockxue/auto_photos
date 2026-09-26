@@ -27,21 +27,21 @@ struct HomeView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("AI Photo Studio").font(.largeTitle.bold())
-                            Text("A non-destructive editing workspace built for fast, full-resolution renders.")
+                            Text(L10n.text("AI Photo Studio")).font(.largeTitle.bold())
+                            Text(L10n.text("A non-destructive editing workspace built for fast, full-resolution renders."))
                                 .foregroundStyle(.secondary)
                         }
 
                         AppCard {
                             VStack(alignment: .leading, spacing: 14) {
                                 AppIcon(systemName: "wand.and.stars")
-                                Text("Start with the generated image").font(.title3.bold())
-                                Text("No bundled asset is required. Explore every adjustment on a color-managed test image.")
+                                Text(L10n.text("Start with the generated image")).font(.title3.bold())
+                                Text(L10n.text("No bundled asset is required. Explore every adjustment on a color-managed test image."))
                                     .foregroundStyle(.secondary)
                                 NavigationLink {
                                     EditorView()
                                 } label: {
-                                    Label("Open Editor", systemImage: "arrow.right")
+                                    Label(L10n.text("Open Editor"), systemImage: "arrow.right")
                                         .font(.headline)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 14)
@@ -52,7 +52,7 @@ struct HomeView: View {
                         }
 
                         Button(action: openPicker) {
-                            Label(isImporting ? "Importing…" : "Choose from Photos", systemImage: "photo.on.rectangle")
+                            Label(L10n.text(isImporting ? "Importing…" : "Choose from Photos"), systemImage: "photo.on.rectangle")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                         }
@@ -64,7 +64,7 @@ struct HomeView: View {
                         }
 
                         if !projects.isEmpty {
-                            Text("Projects").font(.title2.bold())
+                            Text(L10n.text("Projects")).font(.title2.bold())
                             ForEach(projects) { project in
                                 Button {
                                     Task { await open(project) }
@@ -76,7 +76,11 @@ struct HomeView: View {
                                                 Text(project.title).font(.headline)
                                                 Text("\(project.originalPixelWidth) × \(project.originalPixelHeight) · \(project.originalFormat.rawValue.uppercased()) · v\(project.currentVersion)")
                                                     .font(.caption).foregroundStyle(.secondary)
-                                                Text("Created \(project.createdAt.formatted(date: .abbreviated, time: .omitted)) · Updated \(project.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                                                Text(L10n.format(
+                                                    "Created %@ · Updated %@",
+                                                    project.createdAt.formatted(date: .abbreviated, time: .omitted),
+                                                    project.updatedAt.formatted(date: .abbreviated, time: .shortened)
+                                                ))
                                                     .font(.caption2).foregroundStyle(.secondary)
                                             }
                                             Spacer()
@@ -89,17 +93,17 @@ struct HomeView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
-                                    Button("Versions") {
+                                    Button(L10n.text("Versions")) {
                                         versionProject = project
                                     }
-                                    Button("Rename") {
+                                    Button(L10n.text("Rename")) {
                                         renameProject = project
                                         renameText = project.title
                                     }
-                                    Button(project.isFavorite ? "Remove Favorite" : "Favorite") {
+                                    Button(L10n.text(project.isFavorite ? "Remove Favorite" : "Favorite")) {
                                         Task { await toggleFavorite(project) }
                                     }
-                                    Button("Delete", role: .destructive) {
+                                    Button(L10n.text("Delete"), role: .destructive) {
                                         Task { await delete(project) }
                                     }
                                 }
@@ -113,8 +117,8 @@ struct HomeView: View {
             .sheet(isPresented: $presentsPicker) {
                 SystemPhotoPicker(
                     onSelection: { photos in Task { await importPhotos(photos) } },
-                    onCancel: { statusMessage = "Photo selection was cancelled." },
-                    onFailure: { statusMessage = "Photo read failed: \($0.localizedDescription)" }
+                    onCancel: { statusMessage = L10n.text("Photo selection was cancelled.") },
+                    onFailure: { statusMessage = L10n.format("Photo read failed: %@", $0.localizedDescription) }
                 )
             }
             .sheet(item: $editorPayload, onDismiss: {
@@ -133,13 +137,13 @@ struct HomeView: View {
             }) { project in
                 VersionHistoryView(project: project, repository: repository)
             }
-            .alert("Rename Project", isPresented: Binding(
+            .alert(L10n.text("Rename Project"), isPresented: Binding(
                 get: { renameProject != nil },
                 set: { if !$0 { renameProject = nil } }
             )) {
-                TextField("Project name", text: $renameText)
-                Button("Cancel", role: .cancel) {}
-                Button("Save") {
+                TextField(L10n.text("Project name"), text: $renameText)
+                Button(L10n.text("Cancel"), role: .cancel) {}
+                Button(L10n.text("Save")) {
                     guard let project = renameProject else { return }
                     Task { await rename(project, to: renameText) }
                 }
@@ -153,14 +157,14 @@ struct HomeView: View {
             PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
                 Task { @MainActor in
                     if newStatus == .denied || newStatus == .restricted {
-                        statusMessage = "Photo Library access is denied. The private system picker can still share selected photos."
+                        statusMessage = L10n.text("Photo Library access is denied. The private system picker can still share selected photos.")
                     }
                     presentsPicker = true
                 }
             }
         } else {
             if status == .denied || status == .restricted {
-                statusMessage = "Photo Library access is denied. The private system picker can still share selected photos."
+                statusMessage = L10n.text("Photo Library access is denied. The private system picker can still share selected photos.")
             }
             presentsPicker = true
         }
@@ -182,10 +186,10 @@ struct HomeView: View {
                 ))
             }
             await reloadProjects()
-            statusMessage = "Imported \(imported.count) photo\(imported.count == 1 ? "" : "s")."
+            statusMessage = L10n.format("Imported %lld photos.", imported.count)
             if let first = imported.first { await open(first) }
         } catch {
-            statusMessage = "Import failed: \(error.localizedDescription)"
+            statusMessage = L10n.format("Import failed: %@", error.localizedDescription)
         }
     }
 
@@ -193,7 +197,7 @@ struct HomeView: View {
         do {
             projects = try await repository.allProjects()
         } catch {
-            statusMessage = "Projects could not be loaded: \(error.localizedDescription)"
+            statusMessage = L10n.format("Projects could not be loaded: %@", error.localizedDescription)
         }
     }
 
@@ -205,7 +209,7 @@ struct HomeView: View {
             }
             editorPayload = EditorPayload(project: project, original: original)
         } catch {
-            statusMessage = "Project could not be opened: \(error.localizedDescription)"
+            statusMessage = L10n.format("Project could not be opened: %@", error.localizedDescription)
         }
     }
 
@@ -214,7 +218,7 @@ struct HomeView: View {
             try await repository.delete(id: project.id)
             await reloadProjects()
         } catch {
-            statusMessage = "Project could not be deleted: \(error.localizedDescription)"
+            statusMessage = L10n.format("Project could not be deleted: %@", error.localizedDescription)
         }
     }
 
@@ -225,7 +229,7 @@ struct HomeView: View {
             _ = try await repository.update(updated)
             await reloadProjects()
         } catch {
-            statusMessage = "Favorite could not be updated: \(error.localizedDescription)"
+            statusMessage = L10n.format("Favorite could not be updated: %@", error.localizedDescription)
         }
     }
 
@@ -235,7 +239,7 @@ struct HomeView: View {
             renameProject = nil
             await reloadProjects()
         } catch {
-            statusMessage = "Project could not be renamed: \(error.localizedDescription)"
+            statusMessage = L10n.format("Project could not be renamed: %@", error.localizedDescription)
         }
     }
 }
@@ -251,15 +255,15 @@ private struct VersionHistoryView: View {
             List(project.versions.sorted { $0.number > $1.number }) { version in
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("Version \(version.number)").font(.headline)
-                        Text(version.commandSummary).foregroundStyle(.secondary)
+                        Text(L10n.format("Version %lld", version.number)).font(.headline)
+                        Text(L10n.text(version.commandSummary)).foregroundStyle(.secondary)
                         Text(version.createdAt.formatted()).font(.caption)
                     }
                     Spacer()
                     if version.number == project.currentVersion {
-                        Text("Current").font(.caption).foregroundStyle(.secondary)
+                        Text(L10n.text("Current")).font(.caption).foregroundStyle(.secondary)
                     } else {
-                        Button("Restore") {
+                        Button(L10n.text("Restore")) {
                             Task {
                                 do {
                                     let restored = try await repository.restore(
@@ -288,13 +292,13 @@ private struct VersionHistoryView: View {
                     }
                 }
             }
-            .navigationTitle("Versions")
-            .toolbar { Button("Done") { dismiss() } }
-            .alert("Restore Failed", isPresented: Binding(
+            .navigationTitle(L10n.text("Versions"))
+            .toolbar { Button(L10n.text("Done")) { dismiss() } }
+            .alert(L10n.text("Restore Failed"), isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("OK", role: .cancel) {}
+                Button(L10n.text("OK"), role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }

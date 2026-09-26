@@ -15,14 +15,14 @@ enum ProjectRepositoryError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unsupportedFormat: "Only HEIC, JPEG, and PNG photos are supported."
-        case .unreadableImage: "The selected photo could not be read."
-        case .imageTooLarge: "This photo exceeds the 24-megapixel memory safety limit."
-        case .missingOriginal: "The project's original photo is missing."
-        case .unsafePath: "The project contains an unsafe storage path."
-        case .immutableOriginal: "The immutable original reference cannot be changed."
-        case .projectNotFound: "The project no longer exists."
-        case .versionConflict: "The project was updated elsewhere. Reopen it before saving."
+        case .unsupportedFormat: L10n.text("Only HEIC, JPEG, and PNG photos are supported.")
+        case .unreadableImage: L10n.text("The selected photo could not be read.")
+        case .imageTooLarge: L10n.text("This photo exceeds the 24-megapixel memory safety limit.")
+        case .missingOriginal: L10n.text("The project's original photo is missing.")
+        case .unsafePath: L10n.text("The project contains an unsafe storage path.")
+        case .immutableOriginal: L10n.text("The immutable original reference cannot be changed.")
+        case .projectNotFound: L10n.text("The project no longer exists.")
+        case .versionConflict: L10n.text("The project was updated elsewhere. Reopen it before saving.")
         }
     }
 }
@@ -112,7 +112,7 @@ actor PhotoProjectRepository {
             try data.write(to: originalURL, options: .atomic)
             try Self.thumbnailData(from: source).write(to: thumbnailURL, options: .atomic)
             var projects = try allProjects()
-            let title = suggestedName?.deletingPathExtension.nonEmpty ?? "Untitled Photo"
+            let title = suggestedName?.deletingPathExtension.nonEmpty ?? L10n.text("Untitled Photo")
             let project = PhotoProject(
                 id: id,
                 title: title,
@@ -184,7 +184,7 @@ actor PhotoProjectRepository {
         guard var project = try project(id: id) else {
             throw ProjectRepositoryError.projectNotFound
         }
-        project.title = title.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty ?? "Untitled Photo"
+        project.title = title.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty ?? L10n.text("Untitled Photo")
         return try update(project)
     }
 

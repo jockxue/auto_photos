@@ -91,31 +91,31 @@ enum NetworkError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .invalidConfiguration: "Network configuration is missing or invalid."
-        case .invalidURL: "The request URL is invalid."
-        case .invalidResponse: "The server response is invalid."
-        case .transport: "The network request failed."
-        case .httpStatus(let status): "The server returned HTTP \(status)."
-        case .decoding: "The response could not be decoded."
-        case .encoding: "The request could not be encoded."
-        case .cancelled: "The request was cancelled."
+        case .invalidConfiguration: L10n.text("Network configuration is missing or invalid.")
+        case .invalidURL: L10n.text("The request URL is invalid.")
+        case .invalidResponse: L10n.text("The server response is invalid.")
+        case .transport: L10n.text("The network request failed.")
+        case .httpStatus(let status): L10n.format("The server returned HTTP %lld.", status)
+        case .decoding: L10n.text("The response could not be decoded.")
+        case .encoding: L10n.text("The request could not be encoded.")
+        case .cancelled: L10n.text("The request was cancelled.")
         }
     }
 }
 
 enum AuthenticationError: LocalizedError, Sendable {
     case missingCredentials, unauthorized
-    var errorDescription: String? { "Authentication is unavailable." }
+    var errorDescription: String? { L10n.text("Authentication is unavailable.") }
 }
 
 enum UploadError: LocalizedError, Sendable {
     case sourceMissing, rejected
-    var errorDescription: String? { "Upload failed." }
+    var errorDescription: String? { L10n.text("Upload failed.") }
 }
 
 enum DownloadError: LocalizedError, Sendable {
     case invalidDestination, failed
-    var errorDescription: String? { "Download failed." }
+    var errorDescription: String? { L10n.text("Download failed.") }
 }
 
 struct APIClient: Sendable {

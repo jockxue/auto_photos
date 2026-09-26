@@ -20,6 +20,15 @@ enum ExportFormat: String, CaseIterable, Hashable, Sendable {
 enum JPEGQuality: String, CaseIterable, Hashable, Sendable {
     case low, medium, high, maximum
 
+    var title: String {
+        switch self {
+        case .low: L10n.text("Low")
+        case .medium: L10n.text("Medium")
+        case .high: L10n.text("High")
+        case .maximum: L10n.text("Maximum")
+        }
+    }
+
     var compressionValue: Double {
         switch self {
         case .low: 0.45
@@ -149,11 +158,11 @@ enum ExportError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .unsupportedFormat(let format): "\(format.rawValue.uppercased()) encoding is unavailable on this device."
-        case .encodingFailed: "The exported image could not be encoded."
-        case .invalidDimensions: "The requested export dimensions are invalid."
-        case .memoryBudgetExceeded: "This edit exceeds the 24-megapixel export safety budget."
-        case .cancelled: "Export was cancelled."
+        case .unsupportedFormat(let format): L10n.format("%@ encoding is unavailable on this device.", format.rawValue.uppercased())
+        case .encodingFailed: L10n.text("The exported image could not be encoded.")
+        case .invalidDimensions: L10n.text("The requested export dimensions are invalid.")
+        case .memoryBudgetExceeded: L10n.text("This edit exceeds the 24-megapixel export safety budget.")
+        case .cancelled: L10n.text("Export was cancelled.")
         }
     }
 }
@@ -330,9 +339,9 @@ enum PhotoSaveError: LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .denied: "Photos add-only permission was denied."
-        case .restricted: "Photos access is restricted."
-        case .saveFailed: "The file could not be saved to Photos."
+        case .denied: L10n.text("Photos add-only permission was denied.")
+        case .restricted: L10n.text("Photos access is restricted.")
+        case .saveFailed: L10n.text("The file could not be saved to Photos.")
         }
     }
 }

@@ -207,8 +207,8 @@ enum CropAspectRatio: String, CaseIterable, Codable, Hashable, Sendable {
 
     var title: String {
         switch self {
-        case .free: "Free"
-        case .original: "Original"
+        case .free: L10n.text("Free")
+        case .original: L10n.text("Original")
         case .square: "1:1"
         case .landscapeFourThree: "4:3"
         case .portraitThreeFour: "3:4"
@@ -322,9 +322,134 @@ struct FilterConfig: Codable, Equatable, Sendable {
 
 typealias FilterSelection = FilterConfig
 
+struct CurvePoint: Codable, Equatable, Sendable {
+    var x: Double
+    var y: Double
+}
+
+struct ChannelCurve: Codable, Equatable, Sendable {
+    var points: [CurvePoint]
+
+    static let identity = ChannelCurve(points: [
+        CurvePoint(x: 0, y: 0),
+        CurvePoint(x: 0.25, y: 0.25),
+        CurvePoint(x: 0.5, y: 0.5),
+        CurvePoint(x: 0.75, y: 0.75),
+        CurvePoint(x: 1, y: 1)
+    ])
+
+    var isIdentity: Bool {
+        guard points.count == Self.identity.points.count else { return false }
+        return zip(points, Self.identity.points).allSatisfy {
+            abs($0.x - $1.x) < 0.0001 && abs($0.y - $1.y) < 0.0001
+        }
+    }
+
+    func evaluated(_ input: Double) -> Double {
+        let sorted = points.sorted { $0.x < $1.x }
+        let x = min(max(input, 0), 1)
+        guard let first = sorted.first, let last = sorted.last else { return x }
+        if x <= first.x { return min(max(first.y, 0), 1) }
+        if x >= last.x { return min(max(last.y, 0), 1) }
+        for index in 1..<sorted.count where x <= sorted[index].x {
+            let left = sorted[index - 1]
+            let right = sorted[index]
+            let span = right.x - left.x
+            let t = span == 0 ? 0 : (x - left.x) / span
+            return min(max(left.y + (right.y - left.y) * t, 0), 1)
+        }
+        return min(max(last.y, 0), 1)
+    }
+
+    mutating func setPoint(at index: Int, y: Double) {
+        guard points.indices.contains(index) else { return }
+        points[index].y = min(max(y, 0), 1)
+    }
+}
+
+enum CurveChannel: String, CaseIterable, Identifiable, Sendable {
+    case rgb, red, green, blue
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .rgb: L10n.text("RGB")
+        case .red: L10n.text("Red")
+        case .green: L10n.text("Green")
+        case .blue: L10n.text("Blue")
+        }
+    }
+}
+
+struct CurveAdjustment: Codable, Equatable, Sendable {
+    var rgb = ChannelCurve.identity
+    var red = ChannelCurve.identity
+    var green = ChannelCurve.identity
+    var blue = ChannelCurve.identity
+
+    var isIdentity: Bool {
+        rgb.isIdentity && red.isIdentity && green.isIdentity && blue.isIdentity
+    }
+
+    subscript(channel: CurveChannel) -> ChannelCurve {
+        get {
+            switch channel {
+            case .rgb: rgb
+            case .red: red
+            case .green: green
+            case .blue: blue
+            }
+        }
+        set {
+            switch channel {
+            case .rgb: rgb = newValue
+            case .red: red = newValue
+            case .green: green = newValue
+            case .blue: blue = newValue
+            }
+        }
+    }
+
+    func lookup(red: Double, green: Double, blue: Double) -> (Double, Double, Double) {
+        (
+            redChannel.evaluated(rgb.evaluated(red)),
+            greenChannel.evaluated(rgb.evaluated(green)),
+            blueChannel.evaluated(rgb.evaluated(blue))
+        )
+    }
+
+    private var redChannel: ChannelCurve { red }
+    private var greenChannel: ChannelCurve { green }
+    private var blueChannel: ChannelCurve { blue }
+}
+
 /// The complete, serializable edit recipe. Original pixels are never mutated.
 struct EditState: Codable, Equatable, Sendable {
     var adjustments = Adjustments()
     var geometry = GeometryEdits()
     var filter: FilterSelection?
+    var curves = CurveAdjustment()
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        adjustments = try values.decodeIfPresent(Adjustments.self, forKey: .adjustments) ?? Adjustments()
+        geometry = try values.decodeIfPresent(GeometryEdits.self, forKey: .geometry) ?? GeometryEdits()
+        filter = try values.decodeIfPresent(FilterSelection.self, forKey: .filter)
+        curves = try values.decodeIfPresent(CurveAdjustment.self, forKey: .curves) ?? CurveAdjustment()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(adjustments, forKey: .adjustments)
+        try values.encode(geometry, forKey: .geometry)
+        try values.encodeIfPresent(filter, forKey: .filter)
+        try values.encode(curves, forKey: .curves)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case adjustments, geometry, filter, curves
+    }
 }

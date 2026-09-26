@@ -32,6 +32,19 @@
 		AA0000000000000000000018 /* AIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001A; };
 		AA0000000000000000000019 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001B; };
 		AA000000000000000000001A /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001C; };
+		AA000000000000000000001B /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001D; };
+		AA000000000000000000001E /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000026; };
+		AA000000000000000000001F /* RecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000027; };
+		AA0000000000000000000020 /* RecipeToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000028; };
+		AA0000000000000000000021 /* RecipeColorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000029; };
+		AA0000000000000000000022 /* RecipeCurveAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002A; };
+		AA0000000000000000000023 /* RecipeTextureAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002B; };
+		AA0000000000000000000024 /* RecipeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002C; };
+		AA0000000000000000000025 /* RecipeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002D; };
+		AA0000000000000000000026 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002E; };
+		AA0000000000000000000027 /* RecipeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002F; };
+		AA000000000000000000001C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000021; };
+		AA000000000000000000001D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000025; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +79,23 @@
 		BB000000000000000000001A /* AIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/AIModels.swift; sourceTree = "<group>"; };
 		BB000000000000000000001B /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/AI/AIService.swift; sourceTree = "<group>"; };
 		BB000000000000000000001C /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Network/APIClient.swift; sourceTree = "<group>"; };
+		BB000000000000000000001D /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/L10n.swift; sourceTree = "<group>"; };
+		BB0000000000000000000026 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/Recipe.swift; sourceTree = "<group>"; };
+		BB0000000000000000000027 /* RecipeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeAnalyzer.swift; sourceTree = "<group>"; };
+		BB0000000000000000000028 /* RecipeToneAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeToneAnalyzer.swift; sourceTree = "<group>"; };
+		BB0000000000000000000029 /* RecipeColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeColorAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002A /* RecipeCurveAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeCurveAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002B /* RecipeTextureAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeTextureAnalyzer.swift; sourceTree = "<group>"; };
+		BB000000000000000000002C /* RecipeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeEngine.swift; sourceTree = "<group>"; };
+		BB000000000000000000002D /* RecipeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/RecipeStore.swift; sourceTree = "<group>"; };
+		BB000000000000000000002E /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/RecipeView.swift; sourceTree = "<group>"; };
+		BB000000000000000000002F /* RecipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTests.swift; sourceTree = "<group>"; };
+		BB000000000000000000001E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		BB000000000000000000001F /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		BB0000000000000000000020 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		BB0000000000000000000022 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		BB0000000000000000000023 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		BB0000000000000000000024 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,8 +105,8 @@
 
 /* Begin PBXGroup section */
 		GG0000000000000000000001 = {isa = PBXGroup; children = (GG0000000000000000000002, GG0000000000000000000003, GG0000000000000000000004, ); sourceTree = "<group>"; };
-		GG0000000000000000000002 = {isa = PBXGroup; children = (BB0000000000000000000001, BB0000000000000000000002, BB0000000000000000000003, BB0000000000000000000004, BB0000000000000000000005, BB0000000000000000000006, BB0000000000000000000007, BB0000000000000000000008, BB0000000000000000000009, BB000000000000000000000A, BB000000000000000000000B, BB000000000000000000000E, BB000000000000000000000F, BB0000000000000000000012, BB0000000000000000000013, BB0000000000000000000014, BB0000000000000000000015, BB0000000000000000000016, BB0000000000000000000017, BB0000000000000000000018, BB0000000000000000000019, BB000000000000000000001A, BB000000000000000000001B, BB000000000000000000001C, ); path = AIPhotoStudio; sourceTree = "<group>"; };
-		GG0000000000000000000003 = {isa = PBXGroup; children = (BB000000000000000000000C, ); path = AIPhotoStudioTests; sourceTree = "<group>"; };
+		GG0000000000000000000002 = {isa = PBXGroup; children = (BB0000000000000000000001, BB0000000000000000000002, BB0000000000000000000003, BB0000000000000000000004, BB0000000000000000000005, BB0000000000000000000006, BB0000000000000000000007, BB0000000000000000000008, BB0000000000000000000009, BB000000000000000000000A, BB000000000000000000000B, BB000000000000000000000E, BB000000000000000000000F, BB0000000000000000000012, BB0000000000000000000013, BB0000000000000000000014, BB0000000000000000000015, BB0000000000000000000016, BB0000000000000000000017, BB0000000000000000000018, BB0000000000000000000019, BB000000000000000000001A, BB000000000000000000001B, BB000000000000000000001C, BB000000000000000000001D, BB0000000000000000000026, BB0000000000000000000027, BB0000000000000000000028, BB0000000000000000000029, BB000000000000000000002A, BB000000000000000000002B, BB000000000000000000002C, BB000000000000000000002D, BB000000000000000000002E, BB0000000000000000000021, BB0000000000000000000025, ); path = AIPhotoStudio; sourceTree = "<group>"; };
+		GG0000000000000000000003 = {isa = PBXGroup; children = (BB000000000000000000000C, BB000000000000000000002F, ); path = AIPhotoStudioTests; sourceTree = "<group>"; };
 		GG0000000000000000000004 = {isa = PBXGroup; children = (BB0000000000000000000010, BB0000000000000000000011, ); name = Products; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
@@ -86,22 +116,27 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		DD0000000000000000000001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; TargetAttributes = {EE0000000000000000000001 = {CreatedOnToolsVersion = 15.0; }; EE0000000000000000000002 = {CreatedOnToolsVersion = 15.0; TestTargetID = EE0000000000000000000001; }; }; }; buildConfigurationList = JJ0000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, ); mainGroup = GG0000000000000000000001; productRefGroup = GG0000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (EE0000000000000000000001, EE0000000000000000000002, ); };
+		DD0000000000000000000001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1500; LastUpgradeCheck = 1500; TargetAttributes = {EE0000000000000000000001 = {CreatedOnToolsVersion = 15.0; }; EE0000000000000000000002 = {CreatedOnToolsVersion = 15.0; TestTargetID = EE0000000000000000000001; }; }; }; buildConfigurationList = JJ0000000000000000000001; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, "zh-Hans", "zh-Hant", ); mainGroup = GG0000000000000000000001; productRefGroup = GG0000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (EE0000000000000000000001, EE0000000000000000000002, ); };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		II0000000000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		II0000000000000000000001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (AA000000000000000000001C, AA000000000000000000001D, ); runOnlyForDeploymentPostprocessing = 0; };
 		II0000000000000000000002 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		HH0000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000000000000000000001, AA0000000000000000000002, AA0000000000000000000003, AA0000000000000000000004, AA0000000000000000000005, AA0000000000000000000006, AA0000000000000000000007, AA0000000000000000000008, AA0000000000000000000009, AA000000000000000000000A, AA000000000000000000000B, AA000000000000000000000E, AA000000000000000000000F, AA0000000000000000000010, AA0000000000000000000011, AA0000000000000000000012, AA0000000000000000000013, AA0000000000000000000014, AA0000000000000000000015, AA0000000000000000000016, AA0000000000000000000017, AA0000000000000000000018, AA0000000000000000000019, AA000000000000000000001A, ); runOnlyForDeploymentPostprocessing = 0; };
-		HH0000000000000000000002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA000000000000000000000C, ); runOnlyForDeploymentPostprocessing = 0; };
+		HH0000000000000000000001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000000000000000000001, AA0000000000000000000002, AA0000000000000000000003, AA0000000000000000000004, AA0000000000000000000005, AA0000000000000000000006, AA0000000000000000000007, AA0000000000000000000008, AA0000000000000000000009, AA000000000000000000000A, AA000000000000000000000B, AA000000000000000000000E, AA000000000000000000000F, AA0000000000000000000010, AA0000000000000000000011, AA0000000000000000000012, AA0000000000000000000013, AA0000000000000000000014, AA0000000000000000000015, AA0000000000000000000016, AA0000000000000000000017, AA0000000000000000000018, AA0000000000000000000019, AA000000000000000000001A, AA000000000000000000001B, AA000000000000000000001E, AA000000000000000000001F, AA0000000000000000000020, AA0000000000000000000021, AA0000000000000000000022, AA0000000000000000000023, AA0000000000000000000024, AA0000000000000000000025, AA0000000000000000000026, ); runOnlyForDeploymentPostprocessing = 0; };
+		HH0000000000000000000002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA000000000000000000000C, AA0000000000000000000027, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		KK0000000000000000000001 = {isa = PBXTargetDependency; target = EE0000000000000000000001; targetProxy = CC0000000000000000000001; };
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		BB0000000000000000000021 /* Localizable.strings */ = {isa = PBXVariantGroup; children = (BB000000000000000000001E, BB000000000000000000001F, BB0000000000000000000020, ); name = Localizable.strings; sourceTree = "<group>"; };
+		BB0000000000000000000025 /* InfoPlist.strings */ = {isa = PBXVariantGroup; children = (BB0000000000000000000022, BB0000000000000000000023, BB0000000000000000000024, ); name = InfoPlist.strings; sourceTree = "<group>"; };
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		LL0000000000000000000001 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; ENABLE_STRICT_OBJC_MSGSEND = YES; GCC_C_LANGUAGE_STANDARD = gnu17; SWIFT_VERSION = 5.0; }; name = Debug; };

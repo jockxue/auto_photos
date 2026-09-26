@@ -22,7 +22,7 @@ protocol RenderEngineProtocol: Sendable {
 enum RenderError: LocalizedError {
     case outputCreationFailed
 
-    var errorDescription: String? { "The renderer could not create an output image." }
+    var errorDescription: String? { L10n.text("The renderer could not create an output image.") }
 }
 
 /// Core Image implementation backed by a Metal CIContext whenever Metal is available.

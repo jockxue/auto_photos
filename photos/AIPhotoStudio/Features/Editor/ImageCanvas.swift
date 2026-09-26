@@ -144,7 +144,7 @@ struct ImageCanvas: View {
                         .resizable()
                         .frame(width: imageMapper.displayRect.width, height: imageMapper.displayRect.height)
                         .position(x: imageMapper.displayRect.midX, y: imageMapper.displayRect.midY)
-                        .accessibilityLabel(presentation.showsOriginal ? "Original photo" : "Edited photo")
+                        .accessibilityLabel(L10n.text(presentation.showsOriginal ? "Original photo" : "Edited photo"))
                 } else {
                     ProgressView().tint(.white)
                 }
@@ -158,8 +158,8 @@ struct ImageCanvas: View {
                 }
 
                 HStack(spacing: 8) {
-                    Picker("Content mode", selection: $mode) {
-                        ForEach(CanvasContentMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    Picker(L10n.text("Content mode"), selection: $mode) {
+                        ForEach(CanvasContentMode.allCases, id: \.self) { Text(L10n.text($0.rawValue)).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 130)
@@ -169,7 +169,7 @@ struct ImageCanvas: View {
                         Image(systemName: "arrow.counterclockwise")
                     }
                     .buttonStyle(.bordered)
-                    .accessibilityLabel("Reset view")
+                    .accessibilityLabel(L10n.text("Reset view"))
                 }
                 .padding(10)
             }
@@ -287,6 +287,6 @@ private struct CropFrameOverlay: View {
                         onEditingChanged(false)
                     }
             )
-        .accessibilityLabel("Crop frame")
+        .accessibilityLabel(L10n.text("Crop frame"))
     }
 }

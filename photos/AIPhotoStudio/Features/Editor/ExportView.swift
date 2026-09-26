@@ -23,38 +23,38 @@ struct ExportView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Picker("Format", selection: $format) {
+                Picker(L10n.text("Format"), selection: $format) {
                     ForEach(ExportFormat.allCases, id: \.self) { Text($0.rawValue.uppercased()).tag($0) }
                 }
                 if format == .jpeg {
-                    Picker("JPEG Quality", selection: $quality) {
-                        ForEach(JPEGQuality.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
+                    Picker(L10n.text("JPEG Quality"), selection: $quality) {
+                        ForEach(JPEGQuality.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                 }
-                Picker("Size", selection: sizeBinding) {
-                    Text("Original").tag("original")
-                    Text("4K long edge").tag("4k")
-                    Text("2048 long edge").tag("2048")
-                    Text("Custom bounding box").tag("custom")
+                Picker(L10n.text("Size"), selection: sizeBinding) {
+                    Text(L10n.text("Original")).tag("original")
+                    Text(L10n.text("4K long edge")).tag("4k")
+                    Text(L10n.text("2048 long edge")).tag("2048")
+                    Text(L10n.text("Custom bounding box")).tag("custom")
                 }
                 if case .custom = size {
-                    Stepper("Max width \(customWidth)", value: $customWidth, in: 64...20_000)
-                    Stepper("Max height \(customHeight)", value: $customHeight, in: 64...20_000)
-                    Text("Custom dimensions preserve the cropped aspect ratio and never upscale.")
+                    Stepper(L10n.format("Max width %lld", customWidth), value: $customWidth, in: 64...20_000)
+                    Stepper(L10n.format("Max height %lld", customHeight), value: $customHeight, in: 64...20_000)
+                    Text(L10n.text("Custom dimensions preserve the cropped aspect ratio and never upscale."))
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if let stage {
                     ProgressView(value: stage.rawValue) {
-                        Text(stage == .completed ? (savedToPhotos ? "Saved to Photos" : "Export ready") : "Exporting…")
+                        Text(L10n.text(stage == .completed ? (savedToPhotos ? "Saved to Photos" : "Export ready") : "Exporting…"))
                     }
                 }
                 if let errorMessage {
                     Text(errorMessage).foregroundStyle(.red)
                 }
-                Button("Export") { startExport() }
+                Button(L10n.text("Export")) { startExport() }
                     .disabled(!operation.canStart)
                 if let exportedURL {
-                    Button("Save to Photos") {
+                    Button(L10n.text("Save to Photos")) {
                         Task {
                             do {
                                 try await PhotoLibrarySaver().save(fileURL: exportedURL)
@@ -64,20 +64,20 @@ struct ExportView: View {
                             }
                         }
                     }
-                    Button("Share…") {
+                    Button(L10n.text("Share…")) {
                         sharePayload = SharePayload(fileURL: exportedURL, deleteWhenReleased: false)
                     }
                 }
                 if operation.isRunning {
-                    Button(operation.isCancelling ? "Cancelling…" : "Cancel", role: .destructive) {
+                    Button(L10n.text(operation.isCancelling ? "Cancelling…" : "Cancel"), role: .destructive) {
                         operation.requestCancellation()
                         exportTask?.cancel()
                     }
                     .disabled(operation.isCancelling)
                 }
             }
-            .navigationTitle("Export")
-            .toolbar { Button("Close") { dismiss() } }
+            .navigationTitle(L10n.text("Export"))
+            .toolbar { Button(L10n.text("Close")) { dismiss() } }
             .sheet(item: $sharePayload) { ShareSheet(payload: $0) }
             .onDisappear {
                 exportTask?.cancel()

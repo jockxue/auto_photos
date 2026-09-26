@@ -44,6 +44,7 @@ final class EditorSession: ObservableObject {
     var editState: EditState { document.editState }
     var cropState: CropState { document.editState.geometry }
     var filterConfig: FilterConfig? { document.editState.filter }
+    var curves: CurveAdjustment { document.editState.curves }
     var sourceAspectRatio: Double {
         let size = GeometryOutputPlanner.outputSize(
             originalWidth: Int(document.original.metadata.pixelSize.width),
@@ -77,7 +78,7 @@ final class EditorSession: ObservableObject {
         await filterThumbnailCache.insert(output, for: key)
         return output
     }
-    var title: String { project?.title ?? "Editor" }
+    var title: String { project?.title ?? L10n.text("Editor") }
     var canUndo: Bool { history.canUndo }
     var canRedo: Bool { history.canRedo }
 
@@ -90,13 +91,13 @@ final class EditorSession: ObservableObject {
         let before = document.editState
         document.editState.adjustments[key] = value
         if !history.isCoalescing {
-            history.record(kind: .adjust, before: before, after: document.editState, summary: key.title)
+            history.record(kind: .adjust, before: before, after: document.editState, summary: L10n.text(key.title))
         }
         renderPreview()
     }
 
     func beginAdjustment(_ key: AdjustmentKey) {
-        history.begin(kind: .adjust, state: document.editState, summary: key.title)
+        history.begin(kind: .adjust, state: document.editState, summary: L10n.text(key.title))
     }
 
     func endAdjustment() {
@@ -107,7 +108,7 @@ final class EditorSession: ObservableObject {
     func resetCurrent(_ key: AdjustmentKey) {
         let before = document.editState
         document.editState.adjustments[key] = key.descriptor.defaultValue
-        history.record(kind: .adjust, before: before, after: document.editState, summary: "Reset \(key.title)")
+        history.record(kind: .adjust, before: before, after: document.editState, summary: L10n.format("Reset %@", L10n.text(key.title)))
         renderPreview()
         scheduleAutosave()
     }
@@ -115,7 +116,7 @@ final class EditorSession: ObservableObject {
     func reset() {
         let before = document.editState
         document.editState = EditState()
-        history.record(kind: .adjust, before: before, after: document.editState, summary: "Reset All")
+        history.record(kind: .adjust, before: before, after: document.editState, summary: L10n.text("Reset All"))
         renderPreview()
         scheduleAutosave()
     }
@@ -137,13 +138,13 @@ final class EditorSession: ObservableObject {
     func updateFilter(_ config: FilterConfig?) {
         let before = document.editState
         document.editState.filter = config
-        history.record(kind: .filter, before: before, after: document.editState, summary: "Filter \(config?.identifier ?? "Original")")
+        history.record(kind: .filter, before: before, after: document.editState, summary: L10n.format("Filter %@", L10n.text(FilterDefinition.definition(id: config?.identifier ?? "original")?.title ?? "Original")))
         renderPreview()
         scheduleAutosave()
     }
 
     func beginFilterEdit() {
-        history.begin(kind: .filter, state: document.editState, summary: "Filter")
+        history.begin(kind: .filter, state: document.editState, summary: L10n.text("Filter"))
     }
 
     func setFilterPreview(_ config: FilterConfig?) {
@@ -156,7 +157,7 @@ final class EditorSession: ObservableObject {
         scheduleAutosave()
     }
 
-    func updateCrop(_ crop: CropState, summary: String = "Crop") {
+    func updateCrop(_ crop: CropState, summary: String = L10n.text("Crop")) {
         let before = document.editState
         document.editState.geometry = crop
         history.record(kind: .crop, before: before, after: document.editState, summary: summary)
@@ -165,7 +166,7 @@ final class EditorSession: ObservableObject {
         scheduleAutosave()
     }
 
-    func beginCropEdit(summary: String = "Crop") {
+    func beginCropEdit(summary: String = L10n.text("Crop")) {
         history.begin(kind: .crop, state: document.editState, summary: summary)
     }
 
@@ -180,6 +181,80 @@ final class EditorSession: ObservableObject {
         scheduleAutosave()
     }
 
+    func setCurvePreview(_ curves: CurveAdjustment) {
+        document.editState.curves = curves
+        renderPreview()
+    }
+
+    func beginCurveEdit() {
+        history.begin(kind: .curve, state: document.editState, summary: L10n.text("Curves"))
+    }
+
+    func endCurveEdit() {
+        history.end(state: document.editState)
+        scheduleAutosave()
+    }
+
+    func resetCurves() {
+        let before = document.editState
+        document.editState.curves = CurveAdjustment()
+        history.record(kind: .curve, before: before, after: document.editState, summary: L10n.text("Reset Curve"))
+        renderPreview()
+        scheduleAutosave()
+    }
+
+    private var recipeBaseline: EditState?
+
+    func beginRecipePreview() {
+        guard recipeBaseline == nil else { return }
+        recipeBaseline = document.editState
+        history.begin(kind: .recipe, state: document.editState, summary: L10n.text("Recipe"))
+    }
+
+    func previewRecipe(_ recipe: Recipe, strength: Double) {
+        beginRecipePreview()
+        guard let recipeBaseline else { return }
+        document.editState = RecipeEngine.apply(recipe, to: recipeBaseline, strength: strength)
+        renderPreview()
+    }
+
+    func commitRecipe(_ recipe: Recipe, strength: Double) {
+        let baseline = recipeBaseline ?? document.editState
+        document.editState = RecipeEngine.apply(recipe, to: baseline, strength: strength)
+        if recipeBaseline != nil {
+            history.end(state: document.editState)
+        } else {
+            history.record(
+                kind: .recipe,
+                before: baseline,
+                after: document.editState,
+                summary: L10n.text("Recipe")
+            )
+        }
+        recipeBaseline = nil
+        renderPreview()
+        scheduleAutosave()
+    }
+
+    func cancelRecipePreview() {
+        guard let recipeBaseline else { return }
+        document.editState = recipeBaseline
+        history.end(state: document.editState)
+        self.recipeBaseline = nil
+        renderPreview()
+    }
+
+    func makeRecipe(title: String) throws -> Recipe {
+        guard !document.original.image.extent.isEmpty else { throw RecipeError.noEditablePhoto }
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return Recipe(
+            title: trimmed.isEmpty ? L10n.text("Untitled Recipe") : trimmed,
+            adjustments: document.editState.adjustments,
+            curves: document.editState.curves,
+            filter: document.editState.filter
+        )
+    }
+
     /// Persists only the project/edit recipe. The immutable original file is not rewritten.
     func complete() async throws {
         autosaveTask?.cancel()
@@ -189,7 +264,7 @@ final class EditorSession: ObservableObject {
 
     private func persist() async throws {
         guard let project, let repository else { return }
-        let summary = history.latestSummary ?? "Edit"
+        let summary = history.latestSummary ?? L10n.text("Edit")
         do {
             self.project = try await repository.saveEditState(
                 projectID: project.id,

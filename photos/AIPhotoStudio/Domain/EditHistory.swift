@@ -1,7 +1,7 @@
 import Foundation
 
 enum EditCommandKind: String, Codable, Sendable {
-    case adjust, filter, crop, rotate
+    case adjust, filter, crop, rotate, curve, recipe
     case aiBoundary, maskBoundary, hslBoundary, curveBoundary
 }
 

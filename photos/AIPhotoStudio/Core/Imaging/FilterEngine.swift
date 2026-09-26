@@ -24,7 +24,20 @@ struct FilterDefinition: Identifiable, Equatable, Sendable {
         ]),
         .init(id: "film", title: "Film", operations: [.filter("CIPhotoEffectProcess", [:])]),
         .init(id: "blackWhite", title: "Black & White", operations: [.filter("CIPhotoEffectMono", [:])]),
-        .init(id: "vintage", title: "Vintage", operations: [.filter("CIPhotoEffectTransfer", [:])])
+        .init(id: "vintage", title: "Vintage", operations: [.filter("CIPhotoEffectTransfer", [:])]),
+        .init(id: "chrome", title: "Chrome", operations: [.filter("CIPhotoEffectChrome", [:])]),
+        .init(id: "fade", title: "Fade", operations: [.filter("CIPhotoEffectFade", [:])]),
+        .init(id: "instant", title: "Instant", operations: [.filter("CIPhotoEffectInstant", [:])]),
+        .init(id: "noir", title: "Noir", operations: [.filter("CIPhotoEffectNoir", [:])]),
+        .init(id: "vivid", title: "Vivid", operations: [
+            .filter("CIColorControls", ["inputSaturation": 1.35, "inputContrast": 1.08]),
+            .filter("CIVibrance", ["inputAmount": 0.35])
+        ]),
+        .init(id: "dramatic", title: "Dramatic", operations: [
+            .filter("CIColorControls", ["inputSaturation": 0.9, "inputContrast": 1.22]),
+            .filter("CIHighlightShadowAdjust", ["inputHighlightAmount": 0.7, "inputShadowAmount": 0.15]),
+            .filter("CIVignette", ["inputIntensity": 0.7, "inputRadius": 1.4])
+        ])
     ]
 
     static func definition(id: String) -> FilterDefinition? {
