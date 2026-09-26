@@ -49,7 +49,7 @@ enum RecipeAnalyzer {
         )
     }
 
-    private static func rasterize(_ image: CIImage) throws -> (pixels: [RecipeSample], width: Int, height: Int) {
+    static func rasterize(_ image: CIImage) throws -> (pixels: [RecipeSample], width: Int, height: Int) {
         let extent = image.extent.integral
         guard extent.width >= 1, extent.height >= 1 else { throw RecipeError.emptyImage }
         let scale = min(1, Double(analysisEdge) / max(extent.width, extent.height))

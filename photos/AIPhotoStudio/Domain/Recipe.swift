@@ -22,6 +22,20 @@ enum RecipeError: LocalizedError, Equatable, Sendable {
     }
 }
 
+struct PaletteBin: Codable, Equatable, Sendable {
+    var hueCenter: Double
+    var saturation: Double
+    var luminance: Double
+    var pixelRatio: Double
+    var hueVariance: Double
+    var saturationVariance: Double
+    var luminanceVariance: Double
+}
+
+struct ReferencePalette: Codable, Equatable, Sendable {
+    var bins: [PaletteBin]
+}
+
 /// A reusable look. It never stores crop, rotation, or flip.
 struct Recipe: Codable, Equatable, Identifiable, Sendable {
     var id: UUID
