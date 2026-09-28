@@ -62,8 +62,15 @@ enum ColorSpace {
     }
 
     static func circularHueDistance(_ first: Double, _ second: Double) -> Double {
-        let delta = abs(normalizeHue(first) - normalizeHue(second))
-        return min(delta, 1 - delta)
+        abs(signedCircularHueDelta(from: first, to: second))
+    }
+
+    /// Shortest signed turn from `source` to `destination`, in -0.5...0.5.
+    static func signedCircularHueDelta(from source: Double, to destination: Double) -> Double {
+        var delta = normalizeHue(destination) - normalizeHue(source)
+        if delta > 0.5 { delta -= 1 }
+        if delta < -0.5 { delta += 1 }
+        return delta
     }
 
     static func circularHueMean(_ values: [(hue: Double, weight: Double)]) -> Double {
