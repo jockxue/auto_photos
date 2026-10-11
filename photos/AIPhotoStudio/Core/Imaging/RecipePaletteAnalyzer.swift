@@ -44,9 +44,9 @@ enum RecipePaletteAnalyzer {
             }
         }
 
-        return ReferencePalette(bins: zip(hueCenters, means).map { center, mean in
+        return ReferencePalette(bins: means.map { mean in
             PaletteBin(
-                hueCenter: center,
+                hueCenter: mean.hue,
                 saturation: mean.saturation,
                 luminance: mean.lightness,
                 pixelRatio: mean.pixelRatio,
