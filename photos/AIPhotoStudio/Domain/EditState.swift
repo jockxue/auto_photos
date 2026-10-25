@@ -430,6 +430,8 @@ struct EditState: Codable, Equatable, Sendable {
     var geometry = GeometryEdits()
     var filter: FilterSelection?
     var curves = CurveAdjustment()
+    /// Absent unless a reference recipe supplied a color-region mapping.
+    var colorMapping: ColorMapping?
 
     init() {}
 
@@ -439,6 +441,7 @@ struct EditState: Codable, Equatable, Sendable {
         geometry = try values.decodeIfPresent(GeometryEdits.self, forKey: .geometry) ?? GeometryEdits()
         filter = try values.decodeIfPresent(FilterSelection.self, forKey: .filter)
         curves = try values.decodeIfPresent(CurveAdjustment.self, forKey: .curves) ?? CurveAdjustment()
+        colorMapping = try values.decodeIfPresent(ColorMapping.self, forKey: .colorMapping)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -447,9 +450,10 @@ struct EditState: Codable, Equatable, Sendable {
         try values.encode(geometry, forKey: .geometry)
         try values.encodeIfPresent(filter, forKey: .filter)
         try values.encode(curves, forKey: .curves)
+        try values.encodeIfPresent(colorMapping, forKey: .colorMapping)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case adjustments, geometry, filter, curves
+        case adjustments, geometry, filter, curves, colorMapping
     }
 }

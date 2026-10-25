@@ -1,3 +1,4 @@
+import CoreImage
 import Foundation
 
 struct RecipeColorCube: Equatable, Sendable {
@@ -8,6 +9,15 @@ struct RecipeColorCube: Equatable, Sendable {
 
 enum RecipeColorCubeBuilder {
     static let defaultDimension = 33
+
+    static func apply(_ mapping: ColorMapping, to image: CIImage) -> CIImage {
+        let cube = build(mapping)
+        let data = cube.samples.withUnsafeBytes { Data($0) }
+        return image.applyingFilter("CIColorCube", parameters: [
+            "inputCubeDimension": cube.dimension,
+            "inputCubeData": data
+        ])
+    }
 
     static func build(_ mapping: ColorMapping, dimension: Int = defaultDimension) -> RecipeColorCube {
         let safeDimension = max(dimension, 2)

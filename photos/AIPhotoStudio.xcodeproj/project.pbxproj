@@ -53,6 +53,11 @@
 		AA0000000000000000000035 /* ColorMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000035 /* ColorMappingTests.swift */; };
 		AA0000000000000000000036 /* Core/Imaging/RecipeColorCubeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000036 /* Core/Imaging/RecipeColorCubeBuilder.swift */; };
 		AA0000000000000000000037 /* RecipeColorCubeBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000037 /* RecipeColorCubeBuilderTests.swift */; };
+		AA0000000000000000000038 /* RecipeColorRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000038 /* RecipeColorRenderTests.swift */; };
+		AA0000000000000000000039 /* Features/PhotoManagement/PhotoBrowseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000039 /* Features/PhotoManagement/PhotoBrowseController.swift */; };
+		AA000000000000000000003A /* Features/PhotoManagement/PhotoLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000003A /* Features/PhotoManagement/PhotoLibraryViewModel.swift */; };
+		AA000000000000000000003B /* Features/PhotoManagement/PhotoManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000003B /* Features/PhotoManagement/PhotoManagementView.swift */; };
+		AA000000000000000000003C /* PhotoBrowseControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000003C /* PhotoBrowseControllerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +123,11 @@
 		BB0000000000000000000035 /* ColorMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorMappingTests.swift; sourceTree = "<group>"; };
 		BB0000000000000000000036 /* Core/Imaging/RecipeColorCubeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeColorCubeBuilder.swift; sourceTree = "<group>"; };
 		BB0000000000000000000037 /* RecipeColorCubeBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeColorCubeBuilderTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000038 /* RecipeColorRenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeColorRenderTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000039 /* Features/PhotoManagement/PhotoBrowseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/PhotoManagement/PhotoBrowseController.swift; sourceTree = "<group>"; };
+		BB000000000000000000003A /* Features/PhotoManagement/PhotoLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/PhotoManagement/PhotoLibraryViewModel.swift; sourceTree = "<group>"; };
+		BB000000000000000000003B /* Features/PhotoManagement/PhotoManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/PhotoManagement/PhotoManagementView.swift; sourceTree = "<group>"; };
+		BB000000000000000000003C /* PhotoBrowseControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoBrowseControllerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -188,6 +198,9 @@
 				BB0000000000000000000032 /* Core/Imaging/ColorSpace.swift */,
 				BB0000000000000000000034 /* Domain/ColorMapping.swift */,
 				BB0000000000000000000036 /* Core/Imaging/RecipeColorCubeBuilder.swift */,
+				BB0000000000000000000039 /* Features/PhotoManagement/PhotoBrowseController.swift */,
+				BB000000000000000000003A /* Features/PhotoManagement/PhotoLibraryViewModel.swift */,
+				BB000000000000000000003B /* Features/PhotoManagement/PhotoManagementView.swift */,
 				BB0000000000000000000021 /* Localizable.strings */,
 				BB0000000000000000000025 /* InfoPlist.strings */,
 			);
@@ -203,6 +216,8 @@
 				BB0000000000000000000033 /* ColorSpaceTests.swift */,
 				BB0000000000000000000035 /* ColorMappingTests.swift */,
 				BB0000000000000000000037 /* RecipeColorCubeBuilderTests.swift */,
+				BB0000000000000000000038 /* RecipeColorRenderTests.swift */,
+				BB000000000000000000003C /* PhotoBrowseControllerTests.swift */,
 			);
 			path = AIPhotoStudioTests;
 			sourceTree = "<group>";
@@ -356,6 +371,9 @@
 				AA0000000000000000000032 /* Core/Imaging/ColorSpace.swift in Sources */,
 				AA0000000000000000000034 /* Domain/ColorMapping.swift in Sources */,
 				AA0000000000000000000036 /* Core/Imaging/RecipeColorCubeBuilder.swift in Sources */,
+				AA0000000000000000000039 /* Features/PhotoManagement/PhotoBrowseController.swift in Sources */,
+				AA000000000000000000003A /* Features/PhotoManagement/PhotoLibraryViewModel.swift in Sources */,
+				AA000000000000000000003B /* Features/PhotoManagement/PhotoManagementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,6 +387,8 @@
 				AA0000000000000000000033 /* ColorSpaceTests.swift in Sources */,
 				AA0000000000000000000035 /* ColorMappingTests.swift in Sources */,
 				AA0000000000000000000037 /* RecipeColorCubeBuilderTests.swift in Sources */,
+				AA0000000000000000000038 /* RecipeColorRenderTests.swift in Sources */,
+				AA000000000000000000003C /* PhotoBrowseControllerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

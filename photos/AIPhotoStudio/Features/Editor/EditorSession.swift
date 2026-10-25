@@ -204,6 +204,7 @@ final class EditorSession: ObservableObject {
     }
 
     private var recipeBaseline: EditState?
+    private var cachedTargetPalette: ReferencePalette?
 
     func beginRecipePreview() {
         guard recipeBaseline == nil else { return }
@@ -214,13 +215,13 @@ final class EditorSession: ObservableObject {
     func previewRecipe(_ recipe: Recipe, strength: Double) {
         beginRecipePreview()
         guard let recipeBaseline else { return }
-        document.editState = RecipeEngine.apply(recipe, to: recipeBaseline, strength: strength)
+        document.editState = appliedRecipe(recipe, to: recipeBaseline, strength: strength)
         renderPreview()
     }
 
     func commitRecipe(_ recipe: Recipe, strength: Double) {
         let baseline = recipeBaseline ?? document.editState
-        document.editState = RecipeEngine.apply(recipe, to: baseline, strength: strength)
+        document.editState = appliedRecipe(recipe, to: baseline, strength: strength)
         if recipeBaseline != nil {
             history.end(state: document.editState)
         } else {
@@ -242,6 +243,31 @@ final class EditorSession: ObservableObject {
         history.end(state: document.editState)
         self.recipeBaseline = nil
         renderPreview()
+    }
+
+    private func appliedRecipe(_ recipe: Recipe, to baseline: EditState, strength: Double) -> EditState {
+        var state = RecipeEngine.apply(recipe, to: baseline, strength: strength)
+        state.colorMapping = colorMapping(for: recipe, strength: strength)
+        return state
+    }
+
+    private func colorMapping(for recipe: Recipe, strength: Double) -> ColorMapping? {
+        guard strength > 0, let reference = recipe.palette, let target = targetPalette() else { return nil }
+        var mapping = ColorMappingBuilder.build(reference: reference, target: target)
+        mapping.bins = mapping.bins.map { bin in
+            var scaled = bin
+            scaled.mappingWeight *= strength
+            return scaled
+        }
+        return mapping
+    }
+
+    private func targetPalette() -> ReferencePalette? {
+        if let cachedTargetPalette { return cachedTargetPalette }
+        guard let rasterized = try? RecipeAnalyzer.rasterize(document.original.image) else { return nil }
+        let palette = RecipePaletteAnalyzer.analyze(samples: rasterized.pixels)
+        cachedTargetPalette = palette
+        return palette
     }
 
     func makeRecipe(title: String) throws -> Recipe {

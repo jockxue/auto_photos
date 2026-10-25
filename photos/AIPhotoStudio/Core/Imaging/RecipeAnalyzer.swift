@@ -45,7 +45,8 @@ enum RecipeAnalyzer {
             title: title,
             adjustments: adjustments,
             curves: RecipeCurveAnalyzer.curve(for: samples),
-            filter: nil
+            filter: nil,
+            palette: RecipePaletteAnalyzer.analyze(samples: samples)
         )
     }
 

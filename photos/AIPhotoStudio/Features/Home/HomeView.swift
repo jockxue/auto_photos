@@ -59,6 +59,16 @@ struct HomeView: View {
                         .buttonStyle(.bordered)
                         .disabled(isImporting)
 
+                        NavigationLink {
+                            PhotoManagementView()
+                                .onDisappear { Task { await reloadProjects() } }
+                        } label: {
+                            Label(L10n.text("Photo Library"), systemImage: "photo")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.bordered)
+
                         if let statusMessage {
                             Text(statusMessage).font(.footnote).foregroundStyle(.secondary)
                         }

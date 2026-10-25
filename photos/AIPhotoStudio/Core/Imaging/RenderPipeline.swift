@@ -137,7 +137,9 @@ private struct ColorProcessor: RenderStageProcessor {
         image = image.applyingFilter("CIVibrance", parameters: [
             "inputAmount": value.vibrance / 100
         ])
-        return CurveRenderer.apply(edits.curves, to: image)
+        let curved = CurveRenderer.apply(edits.curves, to: image)
+        guard let mapping = edits.colorMapping else { return curved }
+        return RecipeColorCubeBuilder.apply(mapping, to: curved)
     }
 }
 
