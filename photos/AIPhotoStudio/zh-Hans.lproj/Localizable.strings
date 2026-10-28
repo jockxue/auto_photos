@@ -188,3 +188,11 @@
 "The AI request is invalid." = "AI 请求无效。";
 "The AI provider could not complete the request." = "AI 服务无法完成请求。";
 "The AI task was cancelled." = "已取消 AI 任务。";
+"FilmTone" = "FilmTone";
+"Give every photo its own color story." = "让每一张照片，都有自己的色彩故事。";
+"Start Creating" = "开始创作";
+"Recent Edits" = "最近编辑";
+"No edited projects yet." = "还没有编辑记录。";
+"Import a photo without changing the original." = "导入一张照片，不直接改写原图。";
+"Browse and edit photos from your library." = "浏览并打开系统相册中的照片。";
+"%@, %lld × %lld" = "%1$@，%2$lld × %3$lld";

@@ -17,112 +17,109 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [.indigo.opacity(0.2), .purple.opacity(0.08), .clear],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                FilmToneTheme.background.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(L10n.text("AI Photo Studio")).font(.largeTitle.bold())
-                            Text(L10n.text("A non-destructive editing workspace built for fast, full-resolution renders."))
-                                .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 28) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(L10n.text("FilmTone"))
+                                .font(FilmToneTheme.largeTitle)
+                                .foregroundStyle(FilmToneTheme.primaryText)
+                            Text(L10n.text("Give every photo its own color story."))
+                                .font(FilmToneTheme.body)
+                                .foregroundStyle(FilmToneTheme.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
-                        AppCard {
-                            VStack(alignment: .leading, spacing: 14) {
-                                AppIcon(systemName: "wand.and.stars")
-                                Text(L10n.text("Start with the generated image")).font(.title3.bold())
-                                Text(L10n.text("No bundled asset is required. Explore every adjustment on a color-managed test image."))
-                                    .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionTitle("Start Creating")
+                            HStack(alignment: .top, spacing: 10) {
                                 NavigationLink {
                                     EditorView()
                                 } label: {
-                                    Label(L10n.text("Open Editor"), systemImage: "arrow.right")
-                                        .font(.headline)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 14)
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.indigo)
-                            }
-                        }
-
-                        Button(action: openPicker) {
-                            Label(L10n.text(isImporting ? "Importing…" : "Choose from Photos"), systemImage: "photo.on.rectangle")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(isImporting)
-
-                        NavigationLink {
-                            PhotoManagementView()
-                                .onDisappear { Task { await reloadProjects() } }
-                        } label: {
-                            Label(L10n.text("Photo Library"), systemImage: "photo")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.bordered)
-
-                        if let statusMessage {
-                            Text(statusMessage).font(.footnote).foregroundStyle(.secondary)
-                        }
-
-                        if !projects.isEmpty {
-                            Text(L10n.text("Projects")).font(.title2.bold())
-                            ForEach(projects) { project in
-                                Button {
-                                    Task { await open(project) }
-                                } label: {
-                                    AppCard {
-                                        HStack {
-                                            ProjectThumbnail(project: project, repository: repository)
-                                            VStack(alignment: .leading) {
-                                                Text(project.title).font(.headline)
-                                                Text("\(project.originalPixelWidth) × \(project.originalPixelHeight) · \(project.originalFormat.rawValue.uppercased()) · v\(project.currentVersion)")
-                                                    .font(.caption).foregroundStyle(.secondary)
-                                                Text(L10n.format(
-                                                    "Created %@ · Updated %@",
-                                                    project.createdAt.formatted(date: .abbreviated, time: .omitted),
-                                                    project.updatedAt.formatted(date: .abbreviated, time: .shortened)
-                                                ))
-                                                    .font(.caption2).foregroundStyle(.secondary)
-                                            }
-                                            Spacer()
-                                            if project.isFavorite {
-                                                Image(systemName: "star.fill").foregroundStyle(.yellow)
-                                            }
-                                            Image(systemName: "chevron.right")
-                                        }
-                                    }
+                                    entryCard(
+                                        systemImage: "wand.and.stars",
+                                        title: "Open Editor",
+                                        detail: "No bundled asset is required. Explore every adjustment on a color-managed test image."
+                                    )
                                 }
                                 .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button(L10n.text("Versions")) {
-                                        versionProject = project
+                                .frame(maxWidth: .infinity, alignment: .top)
+
+                                Button(action: openPicker) {
+                                    entryCard(
+                                        systemImage: isImporting ? "hourglass" : "photo.on.rectangle",
+                                        title: isImporting ? "Importing…" : "Choose from Photos",
+                                        detail: "Import a photo without changing the original."
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(isImporting)
+                                .frame(maxWidth: .infinity, alignment: .top)
+                            }
+
+                            NavigationLink {
+                                PhotoManagementView()
+                                    .onDisappear { Task { await reloadProjects() } }
+                            } label: {
+                                AppCard {
+                                    HStack(spacing: 12) {
+                                        AppIcon(systemName: "photo")
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(L10n.text("Photo Library"))
+                                                .font(FilmToneTheme.body.weight(.semibold))
+                                                .foregroundStyle(FilmToneTheme.primaryText)
+                                                .lineLimit(2)
+                                            Text(L10n.text("Browse and edit photos from your library."))
+                                                .font(FilmToneTheme.caption)
+                                                .foregroundStyle(FilmToneTheme.secondaryText)
+                                                .lineLimit(3)
+                                                .multilineTextAlignment(.leading)
+                                        }
+                                        Spacer(minLength: 8)
+                                        Image(systemName: "chevron.right")
+                                            .font(FilmToneTheme.caption.weight(.semibold))
+                                            .foregroundStyle(FilmToneTheme.accent)
                                     }
-                                    Button(L10n.text("Rename")) {
-                                        renameProject = project
-                                        renameText = project.title
-                                    }
-                                    Button(L10n.text(project.isFavorite ? "Remove Favorite" : "Favorite")) {
-                                        Task { await toggleFavorite(project) }
-                                    }
-                                    Button(L10n.text("Delete"), role: .destructive) {
-                                        Task { await delete(project) }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if let statusMessage {
+                            Text(statusMessage)
+                                .font(FilmToneTheme.caption)
+                                .foregroundStyle(FilmToneTheme.secondaryText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            sectionTitle("Recent Edits")
+                            if projects.isEmpty {
+                                AppCard {
+                                    Text(L10n.text("No edited projects yet."))
+                                        .font(FilmToneTheme.body)
+                                        .foregroundStyle(FilmToneTheme.secondaryText)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            } else {
+                                LazyVGrid(
+                                    columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3),
+                                    spacing: 16
+                                ) {
+                                    ForEach(projects) { project in
+                                        projectCell(project)
                                     }
                                 }
                             }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 28)
                 }
             }
+            .toolbar(.hidden, for: .navigationBar)
             .task { await reloadProjects() }
             .sheet(isPresented: $presentsPicker) {
                 SystemPhotoPicker(
@@ -157,6 +154,80 @@ struct HomeView: View {
                     guard let project = renameProject else { return }
                     Task { await rename(project, to: renameText) }
                 }
+            }
+        }
+    }
+
+    private func sectionTitle(_ key: String) -> some View {
+        Text(L10n.text(key))
+            .font(FilmToneTheme.sectionTitle)
+            .foregroundStyle(FilmToneTheme.primaryText)
+    }
+
+    private func entryCard(systemImage: String, title: String, detail: String) -> some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: 8) {
+                AppIcon(systemName: systemImage)
+                Text(L10n.text(title))
+                    .font(FilmToneTheme.body.weight(.semibold))
+                    .foregroundStyle(FilmToneTheme.primaryText)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                Text(L10n.text(detail))
+                    .font(FilmToneTheme.caption)
+                    .foregroundStyle(FilmToneTheme.secondaryText)
+                    .lineLimit(5)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+    }
+
+    private func projectCell(_ project: PhotoProject) -> some View {
+        Button {
+            Task { await open(project) }
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                ZStack(alignment: .topTrailing) {
+                    ProjectThumbnail(project: project, repository: repository)
+                    if project.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                            .foregroundStyle(FilmToneTheme.accent)
+                            .padding(6)
+                    }
+                }
+                Text(project.title)
+                    .font(FilmToneTheme.body.weight(.semibold))
+                    .foregroundStyle(FilmToneTheme.primaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                Text(project.updatedAt.formatted(date: .abbreviated, time: .shortened))
+                    .font(FilmToneTheme.caption)
+                    .foregroundStyle(FilmToneTheme.secondaryText)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(L10n.format(
+            "%@, %lld × %lld",
+            project.title,
+            Int64(project.originalPixelWidth),
+            Int64(project.originalPixelHeight)
+        )))
+        .contextMenu {
+            Button(L10n.text("Versions")) {
+                versionProject = project
+            }
+            Button(L10n.text("Rename")) {
+                renameProject = project
+                renameText = project.title
+            }
+            Button(L10n.text(project.isFavorite ? "Remove Favorite" : "Favorite")) {
+                Task { await toggleFavorite(project) }
+            }
+            Button(L10n.text("Delete"), role: .destructive) {
+                Task { await delete(project) }
             }
         }
     }
@@ -335,12 +406,13 @@ private struct ProjectThumbnail: View {
                     .scaledToFill()
             } else {
                 Image(systemName: "photo")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(FilmToneTheme.secondaryText)
             }
         }
-        .frame(width: 54, height: 54)
-        .background(.quaternary)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .frame(maxWidth: .infinity)
+        .frame(height: 108)
+        .background(FilmToneTheme.chipBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .task(id: project.currentVersion) {
             guard
                 let data = try? await repository.thumbnailData(for: project),

@@ -190,3 +190,11 @@
 "The AI task was cancelled." = "The AI task was cancelled.";
 "NSPhotoLibraryUsageDescription" = "Choose a photo to edit non-destructively.";
 "NSPhotoLibraryAddUsageDescription" = "Save completed exports to your photo library.";
+"FilmTone" = "FilmTone";
+"Give every photo its own color story." = "Give every photo its own color story.";
+"Start Creating" = "Start Creating";
+"Recent Edits" = "Recent Edits";
+"No edited projects yet." = "No edited projects yet.";
+"Import a photo without changing the original." = "Import a photo without changing the original.";
+"Browse and edit photos from your library." = "Browse and edit photos from your library.";
+"%@, %lld × %lld" = "%@, %lld × %lld";
