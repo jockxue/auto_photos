@@ -196,3 +196,6 @@
 "Import a photo without changing the original." = "导入一张照片，不直接改写原图。";
 "Browse and edit photos from your library." = "浏览并打开系统相册中的照片。";
 "%@, %lld × %lld" = "%1$@，%2$lld × %3$lld";
+"Home" = "首页";
+"Profile" = "我的";
+"This page will be added later." = "这个页面稍后完善。";

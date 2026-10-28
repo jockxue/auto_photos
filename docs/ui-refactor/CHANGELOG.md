@@ -10,3 +10,5 @@
 - 构建和测试：`AIPhotoStudio` Debug，iPhone 17 模拟器，部署目标 iOS 16.0。`xcodebuild test` 成功，99 个测试、0 失败。没有打开 App 看首页。
 - 当前已知问题：导航栏隐藏后的返回路径未在模拟器确认。窄屏双列卡片未实测。没有和 Figma 做截图对比。
 - 详细报告：`docs/ui-refactor/stage-02-home-report.md`
+
+同日补上首页底栏。按 Figma 节点 `35:12` 增加「首页 / 我的」：底色 `#0C0C0C`，选中金色，未选中 `#6A6A6E`。根导航仍是 `NavigationStack`。「我的」目前只显示占位说明。构建通过，没有在模拟器里看最终效果。

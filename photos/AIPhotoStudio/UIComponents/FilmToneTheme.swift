@@ -10,6 +10,9 @@ enum FilmToneTheme {
     static let sliderTrack = rgb(0x3A, 0x3A, 0x3C)
     static let sliderThumb = rgb(0xFF, 0xFF, 0xFF)
     static let cardBackground = rgb(0x1C, 0x1C, 0x1E)
+    static let tabBar = rgb(0x0C, 0x0C, 0x0C)
+    static let tabInactive = rgb(0x6A, 0x6A, 0x6E)
+    static let divider = Color(.sRGB, red: 1, green: 1, blue: 1, opacity: 20.0 / 255)
 
     static let largeTitle = Font.system(size: 28, weight: .semibold)
     static let pageTitle = Font.system(size: 17, weight: .semibold)

@@ -13,14 +13,66 @@ struct HomeView: View {
     @State private var renameProject: PhotoProject?
     @State private var renameText = ""
     @State private var versionProject: PhotoProject?
+    @State private var section: HomeSection = .home
 
     var body: some View {
         NavigationStack {
             ZStack {
                 FilmToneTheme.background.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
+                Group {
+                    if section == .home {
+                        homeContent
+                    } else {
+                        profilePlaceholder
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                HomeTabBar(selection: $section)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .task { await reloadProjects() }
+            .sheet(isPresented: $presentsPicker) {
+                SystemPhotoPicker(
+                    onSelection: { photos in Task { await importPhotos(photos) } },
+                    onCancel: { statusMessage = L10n.text("Photo selection was cancelled.") },
+                    onFailure: { statusMessage = L10n.format("Photo read failed: %@", $0.localizedDescription) }
+                )
+            }
+            .sheet(item: $editorPayload, onDismiss: {
+                Task { await reloadProjects() }
+            }) { payload in
+                NavigationStack {
+                    EditorView(
+                        original: payload.original,
+                        project: payload.project,
+                        repository: repository
+                    )
+                }
+            }
+            .sheet(item: $versionProject, onDismiss: {
+                Task { await reloadProjects() }
+            }) { project in
+                VersionHistoryView(project: project, repository: repository)
+            }
+            .alert(L10n.text("Rename Project"), isPresented: Binding(
+                get: { renameProject != nil },
+                set: { if !$0 { renameProject = nil } }
+            )) {
+                TextField(L10n.text("Project name"), text: $renameText)
+                Button(L10n.text("Cancel"), role: .cancel) {}
+                Button(L10n.text("Save")) {
+                    guard let project = renameProject else { return }
+                    Task { await rename(project, to: renameText) }
+                }
+            }
+        }
+    }
+
+    private var homeContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(L10n.text("FilmTone"))
                                 .font(FilmToneTheme.largeTitle)
@@ -116,46 +168,24 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 16)
                 }
-            }
-            .toolbar(.hidden, for: .navigationBar)
-            .task { await reloadProjects() }
-            .sheet(isPresented: $presentsPicker) {
-                SystemPhotoPicker(
-                    onSelection: { photos in Task { await importPhotos(photos) } },
-                    onCancel: { statusMessage = L10n.text("Photo selection was cancelled.") },
-                    onFailure: { statusMessage = L10n.format("Photo read failed: %@", $0.localizedDescription) }
-                )
-            }
-            .sheet(item: $editorPayload, onDismiss: {
-                Task { await reloadProjects() }
-            }) { payload in
-                NavigationStack {
-                    EditorView(
-                        original: payload.original,
-                        project: payload.project,
-                        repository: repository
-                    )
-                }
-            }
-            .sheet(item: $versionProject, onDismiss: {
-                Task { await reloadProjects() }
-            }) { project in
-                VersionHistoryView(project: project, repository: repository)
-            }
-            .alert(L10n.text("Rename Project"), isPresented: Binding(
-                get: { renameProject != nil },
-                set: { if !$0 { renameProject = nil } }
-            )) {
-                TextField(L10n.text("Project name"), text: $renameText)
-                Button(L10n.text("Cancel"), role: .cancel) {}
-                Button(L10n.text("Save")) {
-                    guard let project = renameProject else { return }
-                    Task { await rename(project, to: renameText) }
-                }
-            }
+    }
+
+    private var profilePlaceholder: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.text("Profile"))
+                .font(FilmToneTheme.largeTitle)
+                .foregroundStyle(FilmToneTheme.primaryText)
+            Text(L10n.text("This page will be added later."))
+                .font(FilmToneTheme.body)
+                .foregroundStyle(FilmToneTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
 
     private func sectionTitle(_ key: String) -> some View {
@@ -420,5 +450,51 @@ private struct ProjectThumbnail: View {
             else { return }
             image = CGImageSourceCreateImageAtIndex(source, 0, nil)
         }
+    }
+}
+
+private enum HomeSection: Hashable {
+    case home
+    case profile
+}
+
+private struct HomeTabBar: View {
+    @Binding var selection: HomeSection
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(FilmToneTheme.divider)
+                .frame(height: 1)
+            HStack(spacing: 0) {
+                tab(.home, symbol: "house", title: "Home")
+                tab(.profile, symbol: "person", title: "Profile")
+            }
+            .padding(.horizontal, 46)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+        }
+        .background(FilmToneTheme.tabBar.ignoresSafeArea(edges: .bottom))
+    }
+
+    private func tab(_ section: HomeSection, symbol: String, title: String) -> some View {
+        let selected = selection == section
+        let color = selected ? FilmToneTheme.accent : FilmToneTheme.tabInactive
+        return Button {
+            selection = section
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: symbol)
+                    .font(.system(size: 20, weight: .regular))
+                    .frame(width: 23, height: 23)
+                Text(L10n.text(title))
+                    .font(.system(size: 10, weight: .medium))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(color)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
