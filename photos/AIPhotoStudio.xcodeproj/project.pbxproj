@@ -19,6 +19,7 @@
 		AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000009 /* Features/Editor/EditorSession.swift */; };
 		AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000A /* Features/Editor/EditorView.swift */; };
 		AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000B /* Features/Home/HomeView.swift */; };
+		AA000000000000000000003E /* Features/Home/PhotoSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000003E /* Features/Home/PhotoSelectionView.swift */; };
 		AA000000000000000000000C /* EditStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000C /* EditStateTests.swift */; };
 		AA000000000000000000000E /* Domain/PhotoProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000E /* Domain/PhotoProject.swift */; };
 		AA000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */; };
@@ -84,6 +85,7 @@
 		BB0000000000000000000009 /* Features/Editor/EditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorSession.swift; sourceTree = "<group>"; };
 		BB000000000000000000000A /* Features/Editor/EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorView.swift; sourceTree = "<group>"; };
 		BB000000000000000000000B /* Features/Home/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/HomeView.swift; sourceTree = "<group>"; };
+		BB000000000000000000003E /* Features/Home/PhotoSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/PhotoSelectionView.swift; sourceTree = "<group>"; };
 		BB000000000000000000000C /* EditStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditStateTests.swift; sourceTree = "<group>"; };
 		BB000000000000000000000E /* Domain/PhotoProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoProject.swift; sourceTree = "<group>"; };
 		BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/PhotoProjectRepository.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 				BB0000000000000000000009 /* Features/Editor/EditorSession.swift */,
 				BB000000000000000000000A /* Features/Editor/EditorView.swift */,
 				BB000000000000000000000B /* Features/Home/HomeView.swift */,
+				BB000000000000000000003E /* Features/Home/PhotoSelectionView.swift */,
 				BB000000000000000000000E /* Domain/PhotoProject.swift */,
 				BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */,
 				BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */,
@@ -348,6 +351,7 @@
 				AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */,
 				AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */,
 				AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */,
+				AA000000000000000000003E /* Features/Home/PhotoSelectionView.swift in Sources */,
 				AA000000000000000000000E /* Domain/PhotoProject.swift in Sources */,
 				AA000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift in Sources */,
 				AA0000000000000000000010 /* Features/Editor/ImageCanvas.swift in Sources */,

@@ -1,4 +1,3 @@
-import Photos
 import ImageIO
 import SwiftUI
 
@@ -7,7 +6,6 @@ struct HomeView: View {
 
     @State private var projects: [PhotoProject] = []
     @State private var editorPayload: EditorPayload?
-    @State private var presentsPicker = false
     @State private var isImporting = false
     @State private var statusMessage: String?
     @State private var renameProject: PhotoProject?
@@ -33,13 +31,6 @@ struct HomeView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .task { await reloadProjects() }
-            .sheet(isPresented: $presentsPicker) {
-                SystemPhotoPicker(
-                    onSelection: { photos in Task { await importPhotos(photos) } },
-                    onCancel: { statusMessage = L10n.text("Photo selection was cancelled.") },
-                    onFailure: { statusMessage = L10n.format("Photo read failed: %@", $0.localizedDescription) }
-                )
-            }
             .sheet(item: $editorPayload, onDismiss: {
                 Task { await reloadProjects() }
             }) { payload in
@@ -98,7 +89,11 @@ struct HomeView: View {
                                 .buttonStyle(.plain)
                                 .frame(maxWidth: .infinity, alignment: .top)
 
-                                Button(action: openPicker) {
+                                NavigationLink {
+                                    PhotoSelectionView { photos in
+                                        Task { await importPhotos(photos) }
+                                    }
+                                } label: {
                                     entryCard(
                                         systemImage: isImporting ? "hourglass" : "photo.on.rectangle",
                                         title: isImporting ? "Importing…" : "Choose from Photos",
@@ -146,7 +141,7 @@ struct HomeView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 12) {
-                            sectionTitle("Recent Edits")
+                            sectionTitle("My Projects")
                             if projects.isEmpty {
                                 AppCard {
                                     Text(L10n.text("No edited projects yet."))
@@ -262,27 +257,7 @@ struct HomeView: View {
         }
     }
 
-    private func openPicker() {
-        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
-        if status == .notDetermined {
-            PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
-                Task { @MainActor in
-                    if newStatus == .denied || newStatus == .restricted {
-                        statusMessage = L10n.text("Photo Library access is denied. The private system picker can still share selected photos.")
-                    }
-                    presentsPicker = true
-                }
-            }
-        } else {
-            if status == .denied || status == .restricted {
-                statusMessage = L10n.text("Photo Library access is denied. The private system picker can still share selected photos.")
-            }
-            presentsPicker = true
-        }
-    }
-
     private func importPhotos(_ photos: [PickedPhoto]) async {
-        presentsPicker = false
         isImporting = true
         statusMessage = nil
         defer { isImporting = false }
@@ -298,7 +273,6 @@ struct HomeView: View {
             }
             await reloadProjects()
             statusMessage = L10n.format("Imported %lld photos.", imported.count)
-            if let first = imported.first { await open(first) }
         } catch {
             statusMessage = L10n.format("Import failed: %@", error.localizedDescription)
         }
@@ -429,21 +403,27 @@ private struct ProjectThumbnail: View {
     @State private var image: CGImage?
 
     var body: some View {
-        Group {
-            if let image {
-                Image(decorative: image, scale: 1)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                Image(systemName: "photo")
-                    .foregroundStyle(FilmToneTheme.secondaryText)
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                GeometryReader { proxy in
+                    Group {
+                        if let image {
+                            Image(decorative: image, scale: 1)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Image(systemName: "photo")
+                                .foregroundStyle(FilmToneTheme.secondaryText)
+                        }
+                    }
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .background(FilmToneTheme.chipBackground)
+                    .clipped()
+                }
             }
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 108)
-        .background(FilmToneTheme.chipBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .task(id: project.currentVersion) {
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .task(id: project.currentVersion) {
             guard
                 let data = try? await repository.thumbnailData(for: project),
                 let source = CGImageSourceCreateWithData(data as CFData, nil)

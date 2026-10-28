@@ -194,6 +194,8 @@
 "Give every photo its own color story." = "Give every photo its own color story.";
 "Start Creating" = "Start Creating";
 "Recent Edits" = "Recent Edits";
+"My Projects" = "My Projects";
+"Select multiple" = "Select multiple";
 "No edited projects yet." = "No edited projects yet.";
 "Import a photo without changing the original." = "Import a photo without changing the original.";
 "Browse and edit photos from your library." = "Browse and edit photos from your library.";
@@ -201,3 +203,12 @@
 "Home" = "Home";
 "Profile" = "Profile";
 "This page will be added later." = "This page will be added later.";
+"Select a Photo" = "Select a Photo";
+"Choose one photo from your library to start editing." = "Choose one photo from your library to start editing.";
+"All Library Photos" = "All Photos";
+"Albums" = "Albums";
+"Recent" = "Recent";
+"Recents" = "Recents";
+"Select 1 photo" = "Select 1";
+"Next Step" = "Next";
+"Selected %lld photos" = "Selected %lld photos";

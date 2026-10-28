@@ -192,6 +192,8 @@
 "Give every photo its own color story." = "讓每一張照片，都有自己的色彩故事。";
 "Start Creating" = "開始創作";
 "Recent Edits" = "最近編輯";
+"My Projects" = "我的專案";
+"Select multiple" = "可多選";
 "No edited projects yet." = "還沒有編輯記錄。";
 "Import a photo without changing the original." = "匯入一張照片，不直接改寫原圖。";
 "Browse and edit photos from your library." = "瀏覽並打開系統相簿中的照片。";
@@ -199,3 +201,12 @@
 "Home" = "首頁";
 "Profile" = "我的";
 "This page will be added later." = "這個頁面稍後完善。";
+"Select a Photo" = "選擇照片";
+"Choose one photo from your library to start editing." = "從相簿中選擇一張照片開始編輯";
+"All Library Photos" = "所有照片";
+"Albums" = "相簿";
+"Recent" = "最近";
+"Recents" = "最近項目";
+"Select 1 photo" = "選擇 1 張";
+"Next Step" = "下一步";
+"Selected %lld photos" = "已選擇 %lld 張照片";
