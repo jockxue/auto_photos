@@ -15,6 +15,7 @@
 		AA0000000000000000000006 /* Core/Persistence/EditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */; };
 		AA0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */; };
 		AA0000000000000000000008 /* UIComponents/Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000008 /* UIComponents/Components.swift */; };
+		AA000000000000000000003D /* UIComponents/FilmToneTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000003D /* UIComponents/FilmToneTheme.swift */; };
 		AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000009 /* Features/Editor/EditorSession.swift */; };
 		AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000A /* Features/Editor/EditorView.swift */; };
 		AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000000B /* Features/Home/HomeView.swift */; };
@@ -79,6 +80,7 @@
 		BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/EditStateStore.swift; sourceTree = "<group>"; };
 		BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/SwiftDataEditStateStore.swift; sourceTree = "<group>"; };
 		BB0000000000000000000008 /* UIComponents/Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/Components.swift; sourceTree = "<group>"; };
+		BB000000000000000000003D /* UIComponents/FilmToneTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponents/FilmToneTheme.swift; sourceTree = "<group>"; };
 		BB0000000000000000000009 /* Features/Editor/EditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorSession.swift; sourceTree = "<group>"; };
 		BB000000000000000000000A /* Features/Editor/EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/EditorView.swift; sourceTree = "<group>"; };
 		BB000000000000000000000B /* Features/Home/HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/HomeView.swift; sourceTree = "<group>"; };
@@ -168,6 +170,7 @@
 				BB0000000000000000000006 /* Core/Persistence/EditStateStore.swift */,
 				BB0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift */,
 				BB0000000000000000000008 /* UIComponents/Components.swift */,
+				BB000000000000000000003D /* UIComponents/FilmToneTheme.swift */,
 				BB0000000000000000000009 /* Features/Editor/EditorSession.swift */,
 				BB000000000000000000000A /* Features/Editor/EditorView.swift */,
 				BB000000000000000000000B /* Features/Home/HomeView.swift */,
@@ -341,6 +344,7 @@
 				AA0000000000000000000006 /* Core/Persistence/EditStateStore.swift in Sources */,
 				AA0000000000000000000007 /* Core/Persistence/SwiftDataEditStateStore.swift in Sources */,
 				AA0000000000000000000008 /* UIComponents/Components.swift in Sources */,
+				AA000000000000000000003D /* UIComponents/FilmToneTheme.swift in Sources */,
 				AA0000000000000000000009 /* Features/Editor/EditorSession.swift in Sources */,
 				AA000000000000000000000A /* Features/Editor/EditorView.swift in Sources */,
 				AA000000000000000000000B /* Features/Home/HomeView.swift in Sources */,
