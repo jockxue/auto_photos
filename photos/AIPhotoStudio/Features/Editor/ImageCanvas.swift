@@ -91,6 +91,8 @@ struct ImageCanvas: View {
     let originalImage: CGImage?
     private let crop: Binding<CropState>?
     private let onCropEditingChanged: (Bool) -> Void
+    private let externalCompare: Binding<Bool>?
+    private let showsChrome: Bool
 
     @State private var mode: CanvasContentMode = .fit
     @State private var presentation = CanvasPresentationState()
@@ -102,18 +104,23 @@ struct ImageCanvas: View {
         editedImage: CGImage?,
         originalImage: CGImage?,
         crop: Binding<CropState>? = nil,
-        onCropEditingChanged: @escaping (Bool) -> Void = { _ in }
+        onCropEditingChanged: @escaping (Bool) -> Void = { _ in },
+        isComparing: Binding<Bool>? = nil,
+        showsChrome: Bool = true
     ) {
         self.editedImage = editedImage
         self.originalImage = originalImage
         self.crop = crop
         self.onCropEditingChanged = onCropEditingChanged
+        self.externalCompare = isComparing
+        self.showsChrome = showsChrome
     }
 
     var body: some View {
         GeometryReader { proxy in
+            let comparing = presentation.showsOriginal || (externalCompare?.wrappedValue ?? false)
             let displayedImage = crop == nil
-                ? (presentation.showsOriginal ? originalImage : editedImage)
+                ? (comparing ? originalImage : editedImage)
                 : originalImage
             let imageSize = displayedImage.map {
                 CGSize(width: CGFloat($0.width), height: CGFloat($0.height))
@@ -144,7 +151,7 @@ struct ImageCanvas: View {
                         .resizable()
                         .frame(width: imageMapper.displayRect.width, height: imageMapper.displayRect.height)
                         .position(x: imageMapper.displayRect.midX, y: imageMapper.displayRect.midY)
-                        .accessibilityLabel(L10n.text(presentation.showsOriginal ? "Original photo" : "Edited photo"))
+                        .accessibilityLabel(L10n.text(comparing ? "Original photo" : "Edited photo"))
                 } else {
                     ProgressView().tint(.white)
                 }
@@ -157,6 +164,7 @@ struct ImageCanvas: View {
                     )
                 }
 
+                if showsChrome {
                 HStack(spacing: 8) {
                     Picker(L10n.text("Content mode"), selection: $mode) {
                         ForEach(CanvasContentMode.allCases, id: \.self) { Text(L10n.text($0.rawValue)).tag($0) }
@@ -172,6 +180,7 @@ struct ImageCanvas: View {
                     .accessibilityLabel(L10n.text("Reset view"))
                 }
                 .padding(10)
+                }
             }
             .clipped()
             .contentShape(Rectangle())

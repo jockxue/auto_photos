@@ -194,6 +194,13 @@
 "Recent Edits" = "最近编辑";
 "My Projects" = "我的项目";
 "Select multiple" = "可多选";
+"Edit Photo" = "编辑照片";
+"Presets" = "预设";
+"Save Grade" = "保存调色";
+"Recommended" = "推荐";
+"Popular" = "热门";
+"Preset Strength" = "预设强度";
+"Compare" = "对比原图";
 "No edited projects yet." = "还没有编辑记录。";
 "Import a photo without changing the original." = "导入一张照片，不直接改写原图。";
 "Browse and edit photos from your library." = "浏览并打开系统相册中的照片。";

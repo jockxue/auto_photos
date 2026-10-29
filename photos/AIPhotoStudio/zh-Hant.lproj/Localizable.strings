@@ -194,6 +194,13 @@
 "Recent Edits" = "最近編輯";
 "My Projects" = "我的專案";
 "Select multiple" = "可多選";
+"Edit Photo" = "編輯照片";
+"Presets" = "預設";
+"Save Grade" = "儲存調色";
+"Recommended" = "推薦";
+"Popular" = "熱門";
+"Preset Strength" = "預設強度";
+"Compare" = "對比原圖";
 "No edited projects yet." = "還沒有編輯記錄。";
 "Import a photo without changing the original." = "匯入一張照片，不直接改寫原圖。";
 "Browse and edit photos from your library." = "瀏覽並打開系統相簿中的照片。";
