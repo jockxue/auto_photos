@@ -82,32 +82,57 @@ struct HomeView: View {
                             sectionTitle("Start Creating")
                             HStack(alignment: .top, spacing: 10) {
                                 NavigationLink {
-                                    EditorView()
+                                    EditorView(initialTool: .filter)
                                 } label: {
-                                    entryCard(
-                                        systemImage: "wand.and.stars",
-                                        title: "Open Editor",
-                                        detail: "No bundled asset is required. Explore every adjustment on a color-managed test image."
+                                    featureCard(
+                                        title: "Apply a Preset",
+                                        detail: "Explore film styles",
+                                        colors: [Color(red: 0.45, green: 0.32, blue: 0.18), Color(red: 0.16, green: 0.12, blue: 0.08)]
                                     )
                                 }
                                 .buttonStyle(.plain)
                                 .frame(maxWidth: .infinity, alignment: .top)
 
                                 NavigationLink {
-                                    PhotoSelectionView { photos in
-                                        Task { await importPhotos(photos) }
-                                    }
+                                    ColorReplicaView()
                                 } label: {
-                                    entryCard(
-                                        systemImage: isImporting ? "hourglass" : "photo.on.rectangle",
-                                        title: isImporting ? "Importing…" : "Choose from Photos",
-                                        detail: "Import a photo without changing the original."
+                                    featureCard(
+                                        title: "Match Colors",
+                                        detail: "Copy a reference photo's color",
+                                        colors: [Color(red: 0.10, green: 0.28, blue: 0.18), Color(red: 0.05, green: 0.10, blue: 0.08)]
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .disabled(isImporting)
                                 .frame(maxWidth: .infinity, alignment: .top)
                             }
+
+                            NavigationLink {
+                                PhotoSelectionView { photos in
+                                    Task { await importPhotos(photos) }
+                                }
+                            } label: {
+                                AppCard {
+                                    HStack(spacing: 12) {
+                                        AppIcon(systemName: isImporting ? "hourglass" : "photo.on.rectangle")
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(L10n.text(isImporting ? "Importing…" : "Choose from Photos"))
+                                                .font(FilmToneTheme.body.weight(.semibold))
+                                                .foregroundStyle(FilmToneTheme.primaryText)
+                                                .lineLimit(2)
+                                            Text(L10n.text("Import a photo without changing the original."))
+                                                .font(FilmToneTheme.caption)
+                                                .foregroundStyle(FilmToneTheme.secondaryText)
+                                                .lineLimit(3)
+                                        }
+                                        Spacer(minLength: 8)
+                                        Image(systemName: "chevron.right")
+                                            .font(FilmToneTheme.caption.weight(.semibold))
+                                            .foregroundStyle(FilmToneTheme.accent)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isImporting)
 
                             NavigationLink {
                                 PhotoManagementView()
@@ -193,22 +218,30 @@ struct HomeView: View {
             .foregroundStyle(FilmToneTheme.primaryText)
     }
 
-    private func entryCard(systemImage: String, title: String, detail: String) -> some View {
-        AppCard {
-            VStack(alignment: .leading, spacing: 8) {
-                AppIcon(systemName: systemImage)
+    private func featureCard(title: String, detail: String, colors: [Color]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+                .frame(height: 112)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 1)
+                .padding(.horizontal, 1)
+            VStack(alignment: .leading, spacing: 4) {
                 Text(L10n.text(title))
-                    .font(FilmToneTheme.body.weight(.semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(FilmToneTheme.primaryText)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
+                    .lineLimit(1)
                 Text(L10n.text(detail))
-                    .font(FilmToneTheme.caption)
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(FilmToneTheme.secondaryText)
-                    .lineLimit(5)
-                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
             }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
         }
+        .frame(maxWidth: .infinity, minHeight: 180, alignment: .topLeading)
+        .background(FilmToneTheme.featureCard)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func projectCell(_ project: PhotoProject) -> some View {

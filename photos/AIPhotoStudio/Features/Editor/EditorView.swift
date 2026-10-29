@@ -13,7 +13,7 @@ struct EditorView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session: EditorSession
     private let onRequestClose: (() -> Void)?
-    @State private var selectedTool: Tool = .filter
+    @State private var selectedTool: Tool
     @State private var presetGroup: PresetGroup = .recommended
     @State private var isComparing = false
     @State private var presentsManualAdjust = false
@@ -24,9 +24,11 @@ struct EditorView: View {
         original: OriginalImage = ImageSourceFactory.makeTestImage(),
         project: PhotoProject? = nil,
         repository: PhotoProjectRepository? = nil,
-        onRequestClose: (() -> Void)? = nil
+        onRequestClose: (() -> Void)? = nil,
+        initialTool: Tool = .filter
     ) {
         self.onRequestClose = onRequestClose
+        _selectedTool = State(initialValue: initialTool)
         _session = StateObject(wrappedValue: EditorSession(
             original: original,
             project: project,
