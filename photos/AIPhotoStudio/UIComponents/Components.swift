@@ -38,16 +38,23 @@ struct AppSlider: View {
     var displayValue: ((Double) -> String)?
     var onEditingChanged: (Bool) -> Void = { _ in }
     var onReset: () -> Void = {}
+    var titleResets = true
+    var valueIsAccent = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Button(title, action: onReset)
-                    .buttonStyle(.plain)
+                if titleResets {
+                    Button(title, action: onReset)
+                        .buttonStyle(.plain)
+                } else {
+                    Text(title)
+                }
                 Spacer()
                 Text(displayValue?(value) ?? value.formatted(.number.precision(.fractionLength(2))))
+                    .font(valueIsAccent ? .system(size: 14, weight: .semibold) : .body)
                     .monospacedDigit()
-                    .foregroundStyle(FilmToneTheme.secondaryText)
+                    .foregroundStyle(valueIsAccent ? FilmToneTheme.accent : FilmToneTheme.secondaryText)
             }
             ThemeSlider(value: $value, range: range, onEditingChanged: onEditingChanged)
         }

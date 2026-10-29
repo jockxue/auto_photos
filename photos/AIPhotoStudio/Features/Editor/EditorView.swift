@@ -15,6 +15,7 @@ struct EditorView: View {
     @State private var selectedTool: Tool = .filter
     @State private var presetGroup: PresetGroup = .recommended
     @State private var isComparing = false
+    @State private var presentsManualAdjust = false
     @State private var saveError: String?
     @State private var exportPayload: EditorExportPayload?
 
@@ -41,6 +42,9 @@ struct EditorView: View {
         .foregroundStyle(FilmToneTheme.primaryText)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(isPresented: $presentsManualAdjust) {
+            ManualAdjustView(session: session, onSave: saveAndClose)
+        }
         .alert(L10n.text("Unable to save"), isPresented: Binding(
             get: { saveError != nil },
             set: { if !$0 { saveError = nil } }
@@ -179,10 +183,14 @@ struct EditorView: View {
     }
 
     private func editorTab(_ tool: Tool, symbol: String, title: String) -> some View {
-        let selected = selectedTool == tool || (tool == .adjust && selectedTool == .curves)
+        let selected = selectedTool == tool
         let color = selected ? FilmToneTheme.accent : FilmToneTheme.secondaryText
         return Button {
-            selectedTool = tool
+            if tool == .adjust {
+                presentsManualAdjust = true
+            } else {
+                selectedTool = tool
+            }
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: symbol)
@@ -229,51 +237,12 @@ struct EditorView: View {
     private var toolControls: some View {
         switch selectedTool {
         case .adjust:
-            ScrollView {
-                VStack(spacing: 18) {
-                    Button {
-                        selectedTool = .curves
-                    } label: {
-                        HStack {
-                            Text(L10n.text("Curves"))
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(FilmToneTheme.accent)
-                        }
-                        .font(FilmToneTheme.body.weight(.semibold))
-                    }
-                    .buttonStyle(.plain)
-                    ForEach(AdjustmentCategory.allCases, id: \.self) { category in
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(L10n.text(category.rawValue)).font(.headline)
-                            ForEach(AdjustmentKey.allCases.filter { $0.descriptor.category == category }) { key in
-                                let descriptor = key.descriptor
-                                AppSlider(
-                                    title: L10n.text(descriptor.title),
-                                    value: Binding(
-                                        get: { session.value(for: key) },
-                                        set: { session.setValue($0, for: key) }
-                                    ),
-                                    range: descriptor.range,
-                                    displayValue: descriptor.displayValue,
-                                    onEditingChanged: {
-                                        $0 ? session.beginAdjustment(key) : session.endAdjustment()
-                                    },
-                                    onReset: { session.resetCurrent(key) }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(maxHeight: 280)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            EmptyView()
         case .curves:
             VStack(spacing: 8) {
                 HStack {
                     Button {
-                        selectedTool = .adjust
+                        selectedTool = .filter
                     } label: {
                         Label(L10n.text("Adjust"), systemImage: "chevron.left")
                             .font(FilmToneTheme.body.weight(.semibold))
@@ -456,6 +425,147 @@ private enum PresetGroup: String, CaseIterable, Identifiable {
                 return ["blackWhite", "noir"].contains(definition.id)
             }
         }
+    }
+}
+
+private struct ManualAdjustView: View {
+    @ObservedObject var session: EditorSession
+    let onSave: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var isComparing = false
+
+    private let controls: [(AdjustmentKey, String)] = [
+        (.exposure, "Exposure"),
+        (.vibrance, "Brilliance"),
+        (.highlights, "Highlights"),
+        (.shadows, "Shadows")
+    ]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            preview
+            VStack(spacing: 22) {
+                ForEach(controls, id: \.0) { key, title in
+                    let descriptor = key.descriptor
+                    AppSlider(
+                        title: L10n.text(title),
+                        value: Binding(
+                            get: { session.value(for: key) },
+                            set: { session.setValue($0, for: key) }
+                        ),
+                        range: descriptor.range,
+                        displayValue: descriptor.displayValue,
+                        onEditingChanged: {
+                            $0 ? session.beginAdjustment(key) : session.endAdjustment()
+                        },
+                        titleResets: false,
+                        valueIsAccent: true
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
+            footer
+        }
+        .background(FilmToneTheme.background.ignoresSafeArea())
+        .foregroundStyle(FilmToneTheme.primaryText)
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private var header: some View {
+        ZStack {
+            Text(L10n.text("Manual Adjust"))
+                .font(FilmToneTheme.pageTitle)
+                .lineLimit(1)
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .frame(width: 22, height: 22)
+                }
+                .accessibilityLabel(L10n.text("Back"))
+                Spacer()
+                Button(action: onSave) {
+                    Text(L10n.text("Save"))
+                        .font(FilmToneTheme.button)
+                        .foregroundStyle(FilmToneTheme.accent)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    private var preview: some View {
+        ZStack(alignment: .bottomLeading) {
+            ImageCanvas(
+                editedImage: editedImage,
+                originalImage: session.originalPreview,
+                isComparing: $isComparing,
+                showsChrome: false
+            )
+            Image(systemName: isComparing ? "eye.fill" : "eye")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(FilmToneTheme.primaryText)
+                .frame(width: 32, height: 32)
+                .background(Color.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .padding(12)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in isComparing = true }
+                        .onEnded { _ in isComparing = false }
+                )
+                .accessibilityLabel(L10n.text("Compare"))
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var footer: some View {
+        HStack {
+            Button(action: resetShownControls) {
+                Text(L10n.text("Reset"))
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(FilmToneTheme.secondaryText)
+            }
+            .buttonStyle(.plain)
+            Spacer()
+            Button(action: { dismiss() }) {
+                Text(L10n.text("Done"))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(FilmToneTheme.accentText)
+                    .frame(width: 99, height: 44)
+                    .background(
+                        FilmToneTheme.accent,
+                        in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .background(FilmToneTheme.tabBar.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(FilmToneTheme.divider)
+                .frame(height: 1)
+        }
+    }
+
+    private var editedImage: CGImage? {
+        if case .ready(let image) = session.preview { return image }
+        return nil
+    }
+
+    private func resetShownControls() {
+        controls.forEach { session.resetCurrent($0.0) }
     }
 }
 

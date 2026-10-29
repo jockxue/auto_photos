@@ -201,6 +201,9 @@
 "Popular" = "热门";
 "Preset Strength" = "预设强度";
 "Compare" = "对比原图";
+"Manual Adjust" = "手动调色";
+"Brilliance" = "鲜明度";
+"Reset" = "重置";
 "No edited projects yet." = "还没有编辑记录。";
 "Import a photo without changing the original." = "导入一张照片，不直接改写原图。";
 "Browse and edit photos from your library." = "浏览并打开系统相册中的照片。";
