@@ -1,6 +1,85 @@
 import Foundation
 import SwiftUI
 
+enum ExportPreferences {
+    private static let formatKey = "filmTone.export.format"
+    private static let qualityKey = "filmTone.export.quality"
+    private static let originalSizeKey = "filmTone.export.originalSize"
+    private static let saveToPhotosKey = "filmTone.export.saveToPhotos"
+
+    static var formatChoice: String {
+        get { UserDefaults.standard.string(forKey: formatKey) ?? "jpeg" }
+        set { UserDefaults.standard.set(newValue, forKey: formatKey) }
+    }
+
+    static var quality: Double {
+        get {
+            UserDefaults.standard.object(forKey: qualityKey) == nil
+                ? 0.8
+                : UserDefaults.standard.double(forKey: qualityKey)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: qualityKey) }
+    }
+
+    static var useOriginalSize: Bool {
+        get {
+            UserDefaults.standard.object(forKey: originalSizeKey) == nil
+                ? true
+                : UserDefaults.standard.bool(forKey: originalSizeKey)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: originalSizeKey) }
+    }
+
+    static var saveToPhotos: Bool {
+        get {
+            UserDefaults.standard.object(forKey: saveToPhotosKey) == nil
+                ? true
+                : UserDefaults.standard.bool(forKey: saveToPhotosKey)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: saveToPhotosKey) }
+    }
+
+    static var keepExif: Bool {
+        get { UserDefaults.standard.object(forKey: "filmTone.export.keepExif") == nil ? true : UserDefaults.standard.bool(forKey: "filmTone.export.keepExif") }
+        set { UserDefaults.standard.set(newValue, forKey: "filmTone.export.keepExif") }
+    }
+
+    static var keepLocation: Bool {
+        get { UserDefaults.standard.bool(forKey: "filmTone.export.keepLocation") }
+        set { UserDefaults.standard.set(newValue, forKey: "filmTone.export.keepLocation") }
+    }
+
+    static var format: ExportFormat {
+        switch formatChoice {
+        case "png", "tiff": .png
+        default: .jpeg
+        }
+    }
+
+    static var jpegQuality: JPEGQuality {
+        switch quality {
+        case ..<0.25: .low
+        case ..<0.55: .medium
+        case ..<0.85: .high
+        default: .maximum
+        }
+    }
+
+    static var size: ExportSize {
+        useOriginalSize ? .original : .pixels2048
+    }
+
+    static func restoreDefaults() {
+        formatChoice = "jpeg"
+        quality = 0.8
+        useOriginalSize = true
+        saveToPhotos = true
+        keepExif = true
+        keepLocation = false
+    }
+}
+
+
 struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
     let project: PhotoProject
@@ -182,16 +261,21 @@ struct ExportView: View {
         let request = ExportRequest(
             project: project,
             editState: editState,
-            format: .jpeg,
-            jpegQuality: .high,
-            size: .original
+            format: ExportPreferences.format,
+            jpegQuality: ExportPreferences.jpegQuality,
+            size: ExportPreferences.size
         )
+        let saveAfterExport = ExportPreferences.saveToPhotos
         exportTask = Task {
             do {
                 let url = try await service.export(request) { value in
                     Task { @MainActor in stage = value }
                 }
                 exportedURL = url
+                if saveAfterExport {
+                    try await PhotoLibrarySaver().save(fileURL: url)
+                    savedToPhotos = true
+                }
             } catch is CancellationError {
                 errorMessage = ExportError.cancelled.localizedDescription
             } catch {
