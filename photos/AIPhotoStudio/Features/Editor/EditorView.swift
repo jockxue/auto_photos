@@ -71,12 +71,19 @@ struct EditorView: View {
         .onChange(of: session.persistenceError) { error in
             if let error { saveError = error }
         }
-        .sheet(item: $exportPayload) { payload in
-            ExportView(
-                project: payload.project,
-                editState: payload.editState,
-                repository: payload.repository
-            )
+        .navigationDestination(isPresented: Binding(
+            get: { exportPayload != nil },
+            set: { if !$0 { exportPayload = nil } }
+        )) {
+            if let exportPayload {
+                ExportView(
+                    project: exportPayload.project,
+                    editState: exportPayload.editState,
+                    repository: exportPayload.repository,
+                    preview: editedImage,
+                    onReturnHome: closeEditor
+                )
+            }
         }
     }
 

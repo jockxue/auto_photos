@@ -6,12 +6,9 @@ struct ExportView: View {
     let project: PhotoProject
     let editState: EditState
     let repository: PhotoProjectRepository
+    var preview: CGImage?
+    var onReturnHome: () -> Void = {}
 
-    @State private var format = ExportFormat.jpeg
-    @State private var quality = JPEGQuality.high
-    @State private var size = ExportSize.original
-    @State private var customWidth = 2048
-    @State private var customHeight = 2048
     @State private var stage: ExportStage?
     @State private var errorMessage: String?
     @State private var sharePayload: SharePayload?
@@ -21,105 +18,173 @@ struct ExportView: View {
     @State private var operation = ExportOperationState()
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Picker(L10n.text("Format"), selection: $format) {
-                    ForEach(ExportFormat.allCases, id: \.self) { Text($0.rawValue.uppercased()).tag($0) }
-                }
-                if format == .jpeg {
-                    Picker(L10n.text("JPEG Quality"), selection: $quality) {
-                        ForEach(JPEGQuality.allCases, id: \.self) { Text($0.title).tag($0) }
+        VStack(spacing: 0) {
+            header
+            ScrollView {
+                VStack(spacing: 0) {
+                    previewImage
+                    status
+                    actionRow(
+                        symbol: "square.and.arrow.down",
+                        title: "Save to Album",
+                        detail: savedToPhotos ? "Saved to Photos" : "JPEG · High Quality",
+                        action: saveToPhotos
+                    )
+                    .padding(.top, 28)
+                    actionRow(
+                        symbol: "square.and.arrow.up",
+                        title: "Share Photo",
+                        detail: "Send or post to another app",
+                        action: share
+                    )
+                    .padding(.top, 10)
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(FilmToneTheme.caption)
+                            .foregroundStyle(FilmToneTheme.secondaryText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 12)
                     }
                 }
-                Picker(L10n.text("Size"), selection: sizeBinding) {
-                    Text(L10n.text("Original")).tag("original")
-                    Text(L10n.text("4K long edge")).tag("4k")
-                    Text(L10n.text("2048 long edge")).tag("2048")
-                    Text(L10n.text("Custom bounding box")).tag("custom")
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+            Button(action: onReturnHome) {
+                Text(L10n.text("Return Home"))
+                    .font(FilmToneTheme.button)
+                    .foregroundStyle(FilmToneTheme.accentText)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(FilmToneTheme.accent, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+        .background(FilmToneTheme.background.ignoresSafeArea())
+        .foregroundStyle(FilmToneTheme.primaryText)
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(item: $sharePayload) { ShareSheet(payload: $0) }
+        .task { startExport() }
+        .onDisappear {
+            exportTask?.cancel()
+            if let exportedURL { try? FileManager.default.removeItem(at: exportedURL) }
+        }
+    }
+
+    private var header: some View {
+        ZStack {
+            Text(L10n.text("Export Photo"))
+                .font(FilmToneTheme.pageTitle)
+                .lineLimit(1)
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .frame(width: 22, height: 22)
                 }
-                if case .custom = size {
-                    Stepper(L10n.format("Max width %lld", customWidth), value: $customWidth, in: 64...20_000)
-                    Stepper(L10n.format("Max height %lld", customHeight), value: $customHeight, in: 64...20_000)
-                    Text(L10n.text("Custom dimensions preserve the cropped aspect ratio and never upscale."))
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-                if let stage {
-                    ProgressView(value: stage.rawValue) {
-                        Text(L10n.text(stage == .completed ? (savedToPhotos ? "Saved to Photos" : "Export ready") : "Exporting…"))
-                    }
-                }
-                if let errorMessage {
-                    Text(errorMessage).foregroundStyle(.red)
-                }
-                Button(L10n.text("Export")) { startExport() }
-                    .disabled(!operation.canStart)
-                if let exportedURL {
-                    Button(L10n.text("Save to Photos")) {
-                        Task {
-                            do {
-                                try await PhotoLibrarySaver().save(fileURL: exportedURL)
-                                savedToPhotos = true
-                            } catch {
-                                errorMessage = error.localizedDescription
-                            }
-                        }
-                    }
-                    Button(L10n.text("Share…")) {
-                        sharePayload = SharePayload(fileURL: exportedURL, deleteWhenReleased: false)
-                    }
-                }
+                .accessibilityLabel(L10n.text("Back"))
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    private var previewImage: some View {
+        Group {
+            if let preview {
+                Image(decorative: preview, scale: 1)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                FilmToneTheme.chipBackground
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 280)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var status: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(FilmToneTheme.accent)
+                    .frame(width: 52, height: 52)
                 if operation.isRunning {
-                    Button(L10n.text(operation.isCancelling ? "Cancelling…" : "Cancel"), role: .destructive) {
-                        operation.requestCancellation()
-                        exportTask?.cancel()
-                    }
-                    .disabled(operation.isCancelling)
+                    ProgressView()
+                        .tint(FilmToneTheme.accentText)
+                } else {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(FilmToneTheme.accentText)
                 }
             }
-            .navigationTitle(L10n.text("Export"))
-            .toolbar { Button(L10n.text("Close")) { dismiss() } }
-            .sheet(item: $sharePayload) { ShareSheet(payload: $0) }
-            .onDisappear {
-                exportTask?.cancel()
-                if let exportedURL { try? FileManager.default.removeItem(at: exportedURL) }
+            Text(L10n.text(operation.isRunning ? "Exporting…" : "Done"))
+                .font(.system(size: 22, weight: .semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 28)
+    }
+
+    private func actionRow(symbol: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundStyle(FilmToneTheme.secondaryText)
+                    .frame(width: 20, height: 20)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.text(title))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(FilmToneTheme.secondaryText)
+                    Text(L10n.text(detail))
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundStyle(FilmToneTheme.secondaryText)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(FilmToneTheme.secondaryText)
+            }
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+            .background(Color(red: 0.11, green: 0.12, blue: 0.11), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(exportedURL == nil || operation.isRunning)
+    }
+
+    private func saveToPhotos() {
+        guard let exportedURL else { return }
+        Task {
+            do {
+                try await PhotoLibrarySaver().save(fileURL: exportedURL)
+                savedToPhotos = true
+            } catch {
+                errorMessage = error.localizedDescription
             }
         }
     }
 
-    private var sizeBinding: Binding<String> {
-        Binding(
-            get: {
-                switch size {
-                case .original: "original"
-                case .fourK: "4k"
-                case .pixels2048: "2048"
-                case .custom: "custom"
-                }
-            },
-            set: {
-                switch $0 {
-                case "4k": size = .fourK
-                case "2048": size = .pixels2048
-                case "custom": size = .custom(width: customWidth, height: customHeight)
-                default: size = .original
-                }
-            }
-        )
+    private func share() {
+        guard let exportedURL else { return }
+        sharePayload = SharePayload(fileURL: exportedURL, deleteWhenReleased: false)
     }
 
     private func startExport() {
         guard operation.begin() else { return }
-        if case .custom = size {
-            size = .custom(width: customWidth, height: customHeight)
-        }
         errorMessage = nil
         let service = ExportService(repository: repository)
         let request = ExportRequest(
             project: project,
             editState: editState,
-            format: format,
-            jpegQuality: quality,
-            size: size
+            format: .jpeg,
+            jpegQuality: .high,
+            size: .original
         )
         exportTask = Task {
             do {
