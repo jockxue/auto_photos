@@ -22,7 +22,7 @@ struct HomeView: View {
                     if section == .home {
                         homeContent
                     } else {
-                        profilePlaceholder
+                        ProfileView(projects: projects)
                     }
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -194,22 +194,6 @@ struct HomeView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 16)
                 }
-    }
-
-    private var profilePlaceholder: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.text("Profile"))
-                .font(FilmToneTheme.largeTitle)
-                .foregroundStyle(FilmToneTheme.primaryText)
-            Text(L10n.text("This page will be added later."))
-                .font(FilmToneTheme.body)
-                .foregroundStyle(FilmToneTheme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
     }
 
     private func sectionTitle(_ key: String) -> some View {
