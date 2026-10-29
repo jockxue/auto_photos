@@ -170,7 +170,7 @@ struct EditorView: View {
                 editorTab(.filter, symbol: "camera.filters", title: "Presets")
                 editorTab(.adjust, symbol: "slider.horizontal.3", title: "Adjust")
                 editorTab(.crop, symbol: "crop", title: "Crop")
-                editorTab(.recipe, symbol: "swatch.variable", title: "Save Grade")
+                editorTab(.recipe, symbol: "swatchpalette", title: "Save Grade")
             }
             .padding(.top, 8)
             .padding(.bottom, 8)
