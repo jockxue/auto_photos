@@ -25,23 +25,27 @@ struct HomeView: View {
                         profilePlaceholder
                     }
                 }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                HomeTabBar(selection: $section)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    HomeTabBar(selection: $section)
+                }
+
+                if let editorPayload {
+                    NavigationStack {
+                        EditorView(
+                            original: editorPayload.original,
+                            project: editorPayload.project,
+                            repository: repository,
+                            onRequestClose: closeEditor
+                        )
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(FilmToneTheme.background.ignoresSafeArea())
+                    .transition(.move(edge: .top))
+                    .zIndex(1)
+                }
             }
             .toolbar(.hidden, for: .navigationBar)
             .task { await reloadProjects() }
-            .sheet(item: $editorPayload, onDismiss: {
-                Task { await reloadProjects() }
-            }) { payload in
-                NavigationStack {
-                    EditorView(
-                        original: payload.original,
-                        project: payload.project,
-                        repository: repository
-                    )
-                }
-            }
             .sheet(item: $versionProject, onDismiss: {
                 Task { await reloadProjects() }
             }) { project in
@@ -286,13 +290,22 @@ struct HomeView: View {
         }
     }
 
+    private func closeEditor() {
+        withAnimation(.easeInOut(duration: 0.35)) {
+            editorPayload = nil
+        }
+        Task { await reloadProjects() }
+    }
+
     private func open(_ project: PhotoProject) async {
         do {
             let data = try await repository.originalData(for: project)
             guard let original = ImageSourceFactory.decode(data: data, maximumDimension: 2048) else {
                 throw ProjectRepositoryError.unreadableImage
             }
-            editorPayload = EditorPayload(project: project, original: original)
+            withAnimation(.easeInOut(duration: 0.35)) {
+                editorPayload = EditorPayload(project: project, original: original)
+            }
         } catch {
             statusMessage = L10n.format("Project could not be opened: %@", error.localizedDescription)
         }

@@ -12,6 +12,7 @@ struct EditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var session: EditorSession
+    private let onRequestClose: (() -> Void)?
     @State private var selectedTool: Tool = .filter
     @State private var presetGroup: PresetGroup = .recommended
     @State private var isComparing = false
@@ -22,8 +23,10 @@ struct EditorView: View {
     init(
         original: OriginalImage = ImageSourceFactory.makeTestImage(),
         project: PhotoProject? = nil,
-        repository: PhotoProjectRepository? = nil
+        repository: PhotoProjectRepository? = nil,
+        onRequestClose: (() -> Void)? = nil
     ) {
+        self.onRequestClose = onRequestClose
         _session = StateObject(wrappedValue: EditorSession(
             original: original,
             project: project,
@@ -126,7 +129,7 @@ struct EditorView: View {
                 .font(FilmToneTheme.pageTitle)
                 .lineLimit(1)
             HStack(spacing: 16) {
-                Button(action: { dismiss() }) {
+                Button(action: closeEditor) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .semibold))
                         .frame(width: 22, height: 22)
@@ -222,11 +225,19 @@ struct EditorView: View {
         }
     }
 
+    private func closeEditor() {
+        if let onRequestClose {
+            onRequestClose()
+        } else {
+            dismiss()
+        }
+    }
+
     private func saveAndClose() {
         Task {
             do {
                 try await session.complete()
-                dismiss()
+                closeEditor()
             } catch {
                 saveError = error.localizedDescription
             }
