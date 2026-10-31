@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ColorReplicaView: View {
     @Environment(\.dismiss) private var dismiss
@@ -22,11 +23,13 @@ struct ColorReplicaView: View {
                     photoPane(
                         title: "Reference A",
                         photo: reference,
+                        imageName: "HomeMatchColors",
                         action: { picking = .reference }
                     )
                     photoPane(
                         title: "Target B",
                         photo: target,
+                        imageName: "ReplicaTarget",
                         action: { picking = .target }
                     )
                 }
@@ -121,18 +124,18 @@ struct ColorReplicaView: View {
         .padding(.top, 8)
     }
 
-    private func photoPane(title: String, photo: PickedPhoto?, action: @escaping () -> Void) -> some View {
+    private func photoPane(title: String, photo: PickedPhoto?, imageName: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.text(title))
                 .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(FilmToneTheme.primaryText)
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(FilmToneTheme.chipBackground)
+            Image(uiImage: paneImage(photo: photo, imageName: imageName))
+                .resizable()
+                .scaledToFill()
+                .frame(maxWidth: .infinity)
                 .frame(height: 118)
-                .overlay {
-                    Image(systemName: photo == nil ? "photo" : "photo.fill")
-                        .foregroundStyle(FilmToneTheme.secondaryText)
-                }
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             Button(action: action) {
                 Text(L10n.text("Change Photo"))
                     .font(.system(size: 13, weight: .regular))
@@ -146,6 +149,21 @@ struct ColorReplicaView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(FilmToneTheme.featureCard, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func paneImage(photo: PickedPhoto?, imageName: String) -> UIImage {
+        if let photo, let image = UIImage(data: photo.data) {
+            return image
+        }
+        if let image = UIImage(named: imageName) {
+            return image
+        }
+        guard let url = Bundle.main.url(forResource: imageName, withExtension: "png"),
+              let data = try? Data(contentsOf: url),
+              let image = UIImage(data: data) else {
+            return UIImage()
+        }
+        return image
     }
 
     private func modeRow(_ item: MatchMode) -> some View {
