@@ -1,5 +1,6 @@
 import ImageIO
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     private let repository = PhotoProjectRepository()
@@ -87,7 +88,7 @@ struct HomeView: View {
                                     featureCard(
                                         title: "Apply a Preset",
                                         detail: "Explore film styles",
-                                        colors: [Color(red: 0.45, green: 0.32, blue: 0.18), Color(red: 0.16, green: 0.12, blue: 0.08)]
+                                        imageName: "HomeApplyPreset"
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -99,7 +100,7 @@ struct HomeView: View {
                                     featureCard(
                                         title: "Match Colors",
                                         detail: "Copy a reference photo's color",
-                                        colors: [Color(red: 0.10, green: 0.28, blue: 0.18), Color(red: 0.05, green: 0.10, blue: 0.08)]
+                                        imageName: "HomeMatchColors"
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -202,11 +203,14 @@ struct HomeView: View {
             .foregroundStyle(FilmToneTheme.primaryText)
     }
 
-    private func featureCard(title: String, detail: String, colors: [Color]) -> some View {
+    private func featureCard(title: String, detail: String, imageName: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                .frame(height: 112)
+            Image(uiImage: bundledImage(imageName))
+                .resizable()
+                .scaledToFill()
                 .frame(maxWidth: .infinity)
+                .frame(height: 112)
+                .clipped()
                 .padding(.top, 1)
                 .padding(.horizontal, 1)
             VStack(alignment: .leading, spacing: 4) {
@@ -226,6 +230,18 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, minHeight: 180, alignment: .topLeading)
         .background(FilmToneTheme.featureCard)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func bundledImage(_ name: String) -> UIImage {
+        if let image = UIImage(named: name) {
+            return image
+        }
+        guard let url = Bundle.main.url(forResource: name, withExtension: "png"),
+              let data = try? Data(contentsOf: url),
+              let image = UIImage(data: data) else {
+            return UIImage()
+        }
+        return image
     }
 
     private func projectCell(_ project: PhotoProject) -> some View {

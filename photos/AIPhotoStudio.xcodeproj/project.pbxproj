@@ -39,6 +39,8 @@
 		AA000000000000000000001B /* App/L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000001D /* App/L10n.swift */; };
 		AA000000000000000000001C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000021 /* Localizable.strings */; };
 		AA000000000000000000001D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000025 /* InfoPlist.strings */; };
+		AA0000000000000000000041 /* Resources/HomeApplyPreset.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000041 /* Resources/HomeApplyPreset.png */; };
+		AA0000000000000000000042 /* Resources/HomeMatchColors.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000042 /* Resources/HomeMatchColors.png */; };
 		AA000000000000000000001E /* Domain/Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000026 /* Domain/Recipe.swift */; };
 		AA000000000000000000001F /* Core/Imaging/RecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000027 /* Core/Imaging/RecipeAnalyzer.swift */; };
 		AA0000000000000000000020 /* Core/Imaging/RecipeToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000028 /* Core/Imaging/RecipeToneAnalyzer.swift */; };
@@ -90,6 +92,8 @@
 		BB000000000000000000003E /* Features/Home/PhotoSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/PhotoSelectionView.swift; sourceTree = "<group>"; };
 		BB000000000000000000003F /* Features/Home/ColorReplicaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/ColorReplicaView.swift; sourceTree = "<group>"; };
 		BB0000000000000000000040 /* Features/Home/ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Home/ProfileView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000041 /* Resources/HomeApplyPreset.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resources/HomeApplyPreset.png; sourceTree = "<group>"; };
+		BB0000000000000000000042 /* Resources/HomeMatchColors.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resources/HomeMatchColors.png; sourceTree = "<group>"; };
 		BB000000000000000000000C /* EditStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditStateTests.swift; sourceTree = "<group>"; };
 		BB000000000000000000000E /* Domain/PhotoProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoProject.swift; sourceTree = "<group>"; };
 		BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/PhotoProjectRepository.swift; sourceTree = "<group>"; };
@@ -183,6 +187,8 @@
 				BB000000000000000000003E /* Features/Home/PhotoSelectionView.swift */,
 				BB000000000000000000003F /* Features/Home/ColorReplicaView.swift */,
 				BB0000000000000000000040 /* Features/Home/ProfileView.swift */,
+				BB0000000000000000000041 /* Resources/HomeApplyPreset.png */,
+				BB0000000000000000000042 /* Resources/HomeMatchColors.png */,
 				BB000000000000000000000E /* Domain/PhotoProject.swift */,
 				BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */,
 				BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */,
@@ -328,6 +334,8 @@
 			files = (
 				AA000000000000000000001C /* Localizable.strings in Resources */,
 				AA000000000000000000001D /* InfoPlist.strings in Resources */,
+				AA0000000000000000000041 /* Resources/HomeApplyPreset.png in Resources */,
+				AA0000000000000000000042 /* Resources/HomeMatchColors.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
