@@ -42,6 +42,7 @@
 		AA0000000000000000000041 /* Resources/HomeApplyPreset.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000041 /* Resources/HomeApplyPreset.png */; };
 		AA0000000000000000000042 /* Resources/HomeMatchColors.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000042 /* Resources/HomeMatchColors.png */; };
 		AA0000000000000000000043 /* Resources/ReplicaTarget.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000043 /* Resources/ReplicaTarget.png */; };
+		AA0000000000000000000044 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000044 /* Assets.xcassets */; };
 		AA000000000000000000001E /* Domain/Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000026 /* Domain/Recipe.swift */; };
 		AA000000000000000000001F /* Core/Imaging/RecipeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000027 /* Core/Imaging/RecipeAnalyzer.swift */; };
 		AA0000000000000000000020 /* Core/Imaging/RecipeToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000028 /* Core/Imaging/RecipeToneAnalyzer.swift */; };
@@ -96,6 +97,7 @@
 		BB0000000000000000000041 /* Resources/HomeApplyPreset.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resources/HomeApplyPreset.png; sourceTree = "<group>"; };
 		BB0000000000000000000042 /* Resources/HomeMatchColors.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resources/HomeMatchColors.png; sourceTree = "<group>"; };
 		BB0000000000000000000043 /* Resources/ReplicaTarget.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Resources/ReplicaTarget.png; sourceTree = "<group>"; };
+		BB0000000000000000000044 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB000000000000000000000C /* EditStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditStateTests.swift; sourceTree = "<group>"; };
 		BB000000000000000000000E /* Domain/PhotoProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Domain/PhotoProject.swift; sourceTree = "<group>"; };
 		BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/PhotoProjectRepository.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 				BB0000000000000000000041 /* Resources/HomeApplyPreset.png */,
 				BB0000000000000000000042 /* Resources/HomeMatchColors.png */,
 				BB0000000000000000000043 /* Resources/ReplicaTarget.png */,
+				BB0000000000000000000044 /* Assets.xcassets */,
 				BB000000000000000000000E /* Domain/PhotoProject.swift */,
 				BB000000000000000000000F /* Core/Persistence/PhotoProjectRepository.swift */,
 				BB0000000000000000000012 /* Features/Editor/ImageCanvas.swift */,
@@ -340,6 +343,7 @@
 				AA0000000000000000000041 /* Resources/HomeApplyPreset.png in Resources */,
 				AA0000000000000000000042 /* Resources/HomeMatchColors.png in Resources */,
 				AA0000000000000000000043 /* Resources/ReplicaTarget.png in Resources */,
+				AA0000000000000000000044 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,11 +485,13 @@
 		LL0000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = QUA3LWC9W9;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FilmTone;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -511,10 +517,12 @@
 		LL0000000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = QUA3LWC9W9;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FilmTone;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save completed exports to your photo library.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo to edit non-destructively.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
