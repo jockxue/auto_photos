@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import AIPhotoStudio
 
 final class RecipeAnalyzerTests: XCTestCase {
@@ -149,5 +150,113 @@ final class RecipeStoreTests: XCTestCase {
         } catch let error as RecipeError {
             XCTAssertEqual(error, .recipeNotFound)
         }
+    }
+}
+
+
+final class ReplicaSessionTests: XCTestCase {
+    @MainActor
+    func testStrengthChangesAndReferenceReplacementUseOriginalBaseline() {
+        let session = EditorSession(original: ImageSourceFactory.makeTestImage(size: CGSize(width: 32, height: 24)))
+        var first = Recipe(title: "Warm")
+        first.adjustments.exposure = 1
+        session.previewRecipe(first, strength: 0.7)
+        XCTAssertEqual(session.editState.adjustments.exposure, 0.7, accuracy: 0.001)
+        session.previewRecipe(first, strength: 0.3)
+        XCTAssertEqual(session.editState.adjustments.exposure, 0.3, accuracy: 0.001)
+        var replacement = Recipe(title: "Dark")
+        replacement.adjustments.exposure = -1
+        session.previewRecipe(replacement, strength: 0.7)
+        XCTAssertEqual(session.editState.adjustments.exposure, -0.7, accuracy: 0.001)
+        session.previewRecipe(replacement, strength: 0)
+        XCTAssertEqual(session.editState, EditState())
+        session.cancelRecipePreview()
+    }
+
+    @MainActor
+    func testConfirmedPreviewSurvivesProjectReload() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repository = PhotoProjectRepository(root: root)
+        let original = ImageSourceFactory.makeTestImage(size: CGSize(width: 48, height: 32))
+        let image = try CoreImageRenderEngine().render(RenderRequest(original: original, edits: .init(), maximumDimension: nil)).cgImage
+        let data = try XCTUnwrap(UIImage(cgImage: image).pngData())
+        let session = EditorSession(original: original)
+        let recipe = try await RecipeAnalyzer.analyze(data: data, title: "Reference")
+        session.previewRecipe(recipe, strength: 0.7)
+        let expected = session.editState
+        XCTAssertNotNil(expected.colorMapping)
+        let project = try await repository.importPhoto(data: data, suggestedName: "Target.png")
+        let saved = try await repository.saveEditState(projectID: project.id, editState: expected, commandSummary: "Match")
+        let loaded = try await repository.project(id: saved.id)
+        let resumed = EditorSession(original: original, project: try XCTUnwrap(loaded), repository: repository)
+        XCTAssertEqual(resumed.editState, expected)
+        let exported = try await resumed.renderExport()
+        XCTAssertEqual(exported.cgImage.width, 48)
+        XCTAssertEqual(exported.cgImage.height, 32)
+        session.cancelRecipePreview()
+    }
+}
+
+
+final class ReplicaPhotoSelectionTests: XCTestCase {
+    @MainActor
+    func testBothPickingOrdersRetainPhotoDataAndEnablePreview() throws {
+        let target = photo(color: .red, size: CGSize(width: 48, height: 32))
+        let reference = photo(color: .blue, size: CGSize(width: 24, height: 24))
+        let orders: [[ReplicaPhotoSlot]] = [[.target, .reference], [.reference, .target]]
+        for order in orders {
+            var selection = ReplicaPhotoSelection()
+            XCTAssertFalse(selection.isComplete)
+            selection.select(order[0] == .target ? target : reference, for: order[0])
+            XCTAssertFalse(selection.isComplete)
+            selection.select(order[1] == .target ? target : reference, for: order[1])
+            XCTAssertTrue(selection.isComplete)
+            XCTAssertEqual(selection.target?.data, target.data)
+            XCTAssertEqual(selection.reference?.data, reference.data)
+        }
+    }
+
+    @MainActor
+    func testSelectedReferenceProducesPreviewDestinationPayload() async throws {
+        let target = photo(color: .red, size: CGSize(width: 48, height: 32))
+        let reference = photo(color: .blue, size: CGSize(width: 24, height: 24))
+        var selection = ReplicaPhotoSelection()
+        selection.select(target, for: .target)
+        selection.select(reference, for: .reference)
+        let payload = try await selection.makePreview()
+        let expected = try await RecipeAnalyzer.analyze(data: reference.data, title: "Reference")
+        XCTAssertEqual(payload.target.data, target.data)
+        XCTAssertEqual(payload.reference.data, reference.data)
+        XCTAssertEqual(payload.original.metadata.pixelSize, CGSize(width: 48, height: 32))
+        XCTAssertEqual(payload.recipe.palette, expected.palette)
+        XCTAssertEqual(payload.recipe.adjustments, expected.adjustments)
+
+        let replacement = photo(color: .green, size: CGSize(width: 24, height: 24))
+        selection.select(replacement, for: .reference)
+        let updated = try await selection.makePreview()
+        XCTAssertEqual(updated.reference.data, replacement.data)
+        XCTAssertEqual(updated.target.data, target.data)
+        XCTAssertNotEqual(updated.recipe.palette, payload.recipe.palette)
+    }
+
+    func testIncompleteSelectionCannotGeneratePreview() async {
+        do {
+            _ = try await ReplicaPhotoSelection().makePreview()
+            XCTFail("A missing photo must not create a preview destination")
+        } catch {
+            XCTAssertEqual(error as? RecipeError, .emptyImage)
+        }
+    }
+
+    @MainActor
+    private func photo(color: UIColor, size: CGSize) -> PickedPhoto {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let data = UIGraphicsImageRenderer(size: size, format: format).pngData { context in
+            color.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+        }
+        return PickedPhoto(data: data, suggestedName: "Sample.png", originalAssetIdentifier: nil)
     }
 }

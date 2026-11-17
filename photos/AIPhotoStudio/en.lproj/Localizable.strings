@@ -294,3 +294,53 @@
 "Select 1 photo" = "Select 1";
 "Next Step" = "Next";
 "Selected %lld photos" = "Selected %lld photos";
+
+"Reference Color Match" = "Reference Color Match";
+
+"Bring a favorite color palette to your photo." = "Bring a favorite color palette to your photo.";
+
+"Your Photo" = "Your Photo";
+
+"Add Your Photo" = "Add Your Photo";
+
+"Reference Colors" = "Reference Colors";
+
+"Change" = "Change";
+
+"Choose Reference Photo" = "Choose Reference Photo";
+
+"Use this photo's color mood." = "Use this photo's color mood.";
+
+"Choose two photos to get started." = "Choose two photos to get started.";
+
+"Generate Color Preview" = "Generate Color Preview";
+
+"Unable to match colors" = "Unable to match colors";
+
+"Color Preview" = "Color Preview";
+
+"Color Match Strength" = "Color Match Strength";
+
+"Subtle" = "Subtle";
+
+"Rich" = "Rich";
+
+"Continue Adjusting" = "Continue Adjusting";
+
+"Apply Colors" = "Apply Colors";
+
+"Colors Applied" = "Colors Applied";
+
+"Saved to your projects. You can keep editing anytime." = "Saved to your projects. You can keep editing anytime.";
+
+"Hold to See Original" = "Hold to See Original";
+
+"Retry" = "Retry";
+
+"Preparing your color preview…" = "Preparing your color preview…";
+
+"Add your photo to continue." = "Add your photo to continue.";
+
+"Choose a reference photo to continue." = "Choose a reference photo to continue.";
+
+"Ready to preview your new colors." = "Ready to preview your new colors.";

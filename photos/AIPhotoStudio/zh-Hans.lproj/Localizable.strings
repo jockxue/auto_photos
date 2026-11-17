@@ -292,3 +292,53 @@
 "Select 1 photo" = "选择 1 张";
 "Next Step" = "下一步";
 "Selected %lld photos" = "已选择 %lld 张照片";
+
+"Reference Color Match" = "参考图仿色";
+
+"Bring a favorite color palette to your photo." = "把喜欢的色调，用到你的照片上";
+
+"Your Photo" = "你的照片";
+
+"Add Your Photo" = "添加你的照片";
+
+"Reference Colors" = "参考色调";
+
+"Change" = "更换";
+
+"Choose Reference Photo" = "选择参考图";
+
+"Use this photo's color mood." = "提取这张照片的色彩氛围";
+
+"Choose two photos to get started." = "选择两张照片，即可开始";
+
+"Generate Color Preview" = "生成仿色预览";
+
+"Unable to match colors" = "无法完成仿色";
+
+"Color Preview" = "仿色预览";
+
+"Color Match Strength" = "仿色强度";
+
+"Subtle" = "轻柔";
+
+"Rich" = "浓郁";
+
+"Continue Adjusting" = "继续微调";
+
+"Apply Colors" = "应用效果";
+
+"Colors Applied" = "效果已保存";
+
+"Saved to your projects. You can keep editing anytime." = "已保存到项目，随时可以继续编辑。";
+
+"Hold to See Original" = "按住看原图";
+
+"Retry" = "重试";
+
+"Preparing your color preview…" = "正在生成仿色预览…";
+
+"Add your photo to continue." = "请添加要调整的照片";
+
+"Choose a reference photo to continue." = "请选择一张参考图";
+
+"Ready to preview your new colors." = "照片已就绪，点击生成仿色预览";

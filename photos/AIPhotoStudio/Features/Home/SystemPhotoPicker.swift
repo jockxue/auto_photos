@@ -16,6 +16,7 @@ struct PickedPhoto {
 /// system picker; all product UI remains SwiftUI.
 struct SystemPhotoPicker: UIViewControllerRepresentable {
     var maximumPixelSize: Int? = nil
+    var selectionLimit: Int = 0
     let onSelection: ([PickedPhoto]) -> Void
     let onCancel: () -> Void
     let onFailure: (Error) -> Void
@@ -32,7 +33,7 @@ struct SystemPhotoPicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var configuration = PHPickerConfiguration(photoLibrary: .shared())
         configuration.filter = .images
-        configuration.selectionLimit = 0
+        configuration.selectionLimit = selectionLimit
         configuration.preferredAssetRepresentationMode = .current
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = context.coordinator

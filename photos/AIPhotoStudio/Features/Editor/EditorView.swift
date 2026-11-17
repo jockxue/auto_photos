@@ -25,9 +25,11 @@ struct EditorView: View {
         project: PhotoProject? = nil,
         repository: PhotoProjectRepository? = nil,
         onRequestClose: (() -> Void)? = nil,
-        initialTool: Tool = .filter
+        initialTool: Tool = .filter,
+        opensAdjustments: Bool = false
     ) {
         self.onRequestClose = onRequestClose
+        _presentsManualAdjust = State(initialValue: opensAdjustments)
         _selectedTool = State(initialValue: initialTool)
         _session = StateObject(wrappedValue: EditorSession(
             original: original,

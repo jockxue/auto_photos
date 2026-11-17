@@ -96,6 +96,7 @@ struct HomeView: View {
 
                                 NavigationLink {
                                     ColorReplicaView()
+                                        .onDisappear { Task { await reloadProjects() } }
                                 } label: {
                                     featureCard(
                                         title: "Match Colors",
