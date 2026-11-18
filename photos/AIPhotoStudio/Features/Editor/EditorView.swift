@@ -341,51 +341,105 @@ struct EditorView: View {
     }
 
     private var cropControls: some View {
-        VStack(spacing: 12) {
+        let crop = session.cropState
+        return VStack(spacing: 16) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
+                HStack(spacing: 8) {
                     ForEach(CropAspectRatio.allCases, id: \.self) { ratio in
-                        Button(L10n.text(ratio.title)) {
-                            var crop = session.cropState
-                            crop.aspectRatio = ratio
-                            crop.normalizedRect = CropLayout.rect(
+                        ToolChip(title: ratio.title, selected: crop.aspectRatio == ratio) {
+                            var value = session.cropState
+                            value.aspectRatio = ratio
+                            value.normalizedRect = CropLayout.rect(
                                 for: ratio,
                                 sourceAspectRatio: session.sourceAspectRatio
                             )
-                            session.updateCrop(crop)
+                            session.updateCrop(value)
                         }
-                        .buttonStyle(.plain)
-                        .padding(.horizontal, 12)
-                        .frame(height: 32)
-                        .background(FilmToneTheme.chipBackground, in: Capsule())
                     }
                 }
+                .padding(.horizontal, 16)
             }
-            AppSlider(
-                title: L10n.text("Rotate"),
-                value: Binding(
-                    get: { session.cropState.fineRotationDegrees },
-                    set: {
-                        var crop = session.cropState
-                        crop.fineRotationDegrees = $0
-                        session.setCropPreview(crop)
+            VStack(spacing: 12) {
+                HStack {
+                    Text("-45°")
+                    Spacer()
+                    Text(L10n.text("Rotate"))
+                    Text(String(format: "%+.0f°", crop.fineRotationDegrees))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(FilmToneTheme.accent)
+                    Spacer()
+                    Text("+45°")
+                }
+                .font(.system(size: 13))
+                .foregroundStyle(FilmToneTheme.secondaryText)
+                .monospacedDigit()
+                ToolSlider(
+                    value: Binding(
+                        get: { session.cropState.fineRotationDegrees },
+                        set: {
+                            var value = session.cropState
+                            value.fineRotationDegrees = $0
+                            session.setCropPreview(value)
+                        }
+                    ),
+                    range: -45...45,
+                    defaultValue: 0,
+                    onEditingChanged: {
+                        $0 ? session.beginCropEdit(summary: L10n.text("Rotate")) : session.endCropEdit()
                     }
-                ),
-                range: -45...45,
-                displayValue: { String(format: "%+.0f°", $0) },
-                onEditingChanged: { $0 ? session.beginCropEdit(summary: L10n.text("Rotate")) : session.endCropEdit() }
-            )
-            HStack {
-                Button(L10n.text("Rotate Left")) { var value = session.cropState; value.rotateLeft(); session.updateCrop(value, summary: L10n.text("Rotate Left")) }
-                Button(L10n.text("Rotate Right")) { var value = session.cropState; value.rotateRight(); session.updateCrop(value, summary: L10n.text("Rotate Right")) }
-                Button(L10n.text("Flip H")) { var value = session.cropState; value.isFlippedHorizontally.toggle(); session.updateCrop(value, summary: L10n.text("Flip Horizontal")) }
-                Button(L10n.text("Flip V")) { var value = session.cropState; value.isFlippedVertically.toggle(); session.updateCrop(value, summary: L10n.text("Flip Vertical")) }
+                )
+                .accessibilityLabel(L10n.text("Rotate"))
+                .accessibilityValue(String(format: "%+.0f°", crop.fineRotationDegrees))
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(FilmToneTheme.primaryText)
+            .padding(.horizontal, 16)
+            HStack(spacing: 0) {
+                cropAction("rotate.left", title: "Rotate Left", active: false) {
+                    var value = session.cropState
+                    value.rotateLeft()
+                    session.updateCrop(value, summary: L10n.text("Rotate Left"))
+                }
+                cropAction("rotate.right", title: "Rotate Right", active: false) {
+                    var value = session.cropState
+                    value.rotateRight()
+                    session.updateCrop(value, summary: L10n.text("Rotate Right"))
+                }
+                cropAction(
+                    "arrow.left.and.right.righttriangle.left.righttriangle.right",
+                    title: "Flip H",
+                    active: crop.isFlippedHorizontally
+                ) {
+                    var value = session.cropState
+                    value.isFlippedHorizontally.toggle()
+                    session.updateCrop(value, summary: L10n.text("Flip Horizontal"))
+                }
+                cropAction(
+                    "arrow.up.and.down.righttriangle.up.righttriangle.down",
+                    title: "Flip V",
+                    active: crop.isFlippedVertically
+                ) {
+                    var value = session.cropState
+                    value.isFlippedVertically.toggle()
+                    session.updateCrop(value, summary: L10n.text("Flip Vertical"))
+                }
+                cropAction("arrow.counterclockwise", title: "Reset", active: false) {
+                    session.updateCrop(CropState(), summary: L10n.text("Reset"))
+                }
+                .disabled(crop == CropState())
+                .opacity(crop == CropState() ? 0.4 : 1)
+            }
+            .padding(.horizontal, 8)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
+    }
+
+    private func cropAction(
+        _ symbol: String,
+        title: String,
+        active: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        CircleToolButton(symbol: symbol, title: title, highlighted: active, action: action)
+            .frame(maxWidth: .infinity)
     }
 }
 

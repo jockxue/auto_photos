@@ -141,29 +141,43 @@ struct AdjustToolStrip: View {
 
     private func toolButton(_ tool: AdjustTool) -> some View {
         let edited = tool.isEdited(in: session)
-        return Button { onSelect(tool) } label: {
+        return CircleToolButton(symbol: tool.symbol, title: tool.title, highlighted: edited, showsDot: edited) {
+            onSelect(tool)
+        }
+    }
+}
+
+struct CircleToolButton: View {
+    let symbol: String
+    let title: String
+    var highlighted = false
+    var showsDot = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: tool.symbol)
+                Image(systemName: symbol)
                     .font(.system(size: 21, weight: .regular))
-                    .foregroundStyle(edited ? FilmToneTheme.accent : FilmToneTheme.primaryText)
+                    .foregroundStyle(highlighted ? FilmToneTheme.accent : FilmToneTheme.primaryText)
                     .frame(width: 48, height: 48)
                     .background(FilmToneTheme.cardBackground, in: Circle())
-                    .overlay(Circle().strokeBorder(edited ? FilmToneTheme.accent : .clear, lineWidth: 1.5))
+                    .overlay(Circle().strokeBorder(highlighted ? FilmToneTheme.accent : .clear, lineWidth: 1.5))
                     .overlay(alignment: .topTrailing) {
-                        if edited {
+                        if showsDot {
                             Circle().fill(FilmToneTheme.accent).frame(width: 6, height: 6).offset(x: 2, y: -2)
                         }
                     }
-                Text(L10n.text(tool.title))
+                Text(L10n.text(title))
                     .font(.system(size: 11))
-                    .foregroundStyle(edited ? FilmToneTheme.accent : FilmToneTheme.secondaryText)
+                    .foregroundStyle(highlighted ? FilmToneTheme.accent : FilmToneTheme.secondaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
             .frame(width: 64)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(L10n.text(tool.title))
+        .accessibilityLabel(L10n.text(title))
     }
 }
 
@@ -347,11 +361,12 @@ struct ToolChip: View {
 }
 
 /// Relative drag, so touching the track never makes the value jump.
-private struct ToolSlider: View {
+struct ToolSlider: View {
     @Binding var value: Double
     let range: ClosedRange<Double>
     let defaultValue: Double
     var gradient: [Color]?
+    var onEditingChanged: (Bool) -> Void = { _ in }
 
     @State private var dragStart: Double?
     private let thumb: CGFloat = 22
@@ -388,19 +403,25 @@ private struct ToolSlider: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { gesture in
+                        if dragStart == nil { onEditingChanged(true) }
                         let start = dragStart ?? value
                         dragStart = start
                         let span = range.upperBound - range.lowerBound
                         update(start + Double(gesture.translation.width / width) * span)
                     }
-                    .onEnded { _ in dragStart = nil }
+                    .onEnded { _ in
+                        dragStart = nil
+                        onEditingChanged(false)
+                    }
             )
         }
         .frame(height: 28)
         .accessibilityElement()
         .accessibilityAdjustableAction { direction in
             let step = (range.upperBound - range.lowerBound) / 40
+            onEditingChanged(true)
             update(value + (direction == .increment ? step : -step))
+            onEditingChanged(false)
         }
     }
 
