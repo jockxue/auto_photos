@@ -440,7 +440,7 @@ private struct EditorExportPayload: Identifiable {
 
 private struct FilterThumbnail: View {
     let definition: FilterDefinition
-    let session: EditorSession
+    @ObservedObject var session: EditorSession
     @State private var image: CGImage?
 
     var body: some View {
@@ -453,6 +453,8 @@ private struct FilterThumbnail: View {
         }
         .frame(width: 62, height: 62)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .task { image = await session.filterThumbnail(for: definition) }
+        .task(id: session.originalPreview != nil) {
+            image = await session.filterThumbnail(for: definition)
+        }
     }
 }
