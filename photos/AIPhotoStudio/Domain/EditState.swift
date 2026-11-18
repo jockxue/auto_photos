@@ -52,10 +52,14 @@ struct Adjustments: Codable, Equatable, Sendable {
     var clarity = 0.0
     var noiseReduction = 0.0
     var grain = 0.0
+    var vignette = 0.0
+    var skinHue = 0.0
+    var skinLuminance = 0.0
 
     private enum CodingKeys: String, CodingKey {
         case exposure, brightness, contrast, highlights, shadows, whites, blacks
         case temperature, tint, saturation, vibrance, sharpness, clarity, noiseReduction, grain
+        case vignette, skinHue, skinLuminance
         case warmth, definition, blackPoint
     }
 
@@ -87,6 +91,9 @@ struct Adjustments: Codable, Equatable, Sendable {
             ?? 0
         noiseReduction = value(.noiseReduction)
         grain = value(.grain)
+        vignette = value(.vignette)
+        skinHue = value(.skinHue)
+        skinLuminance = value(.skinLuminance)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -114,6 +121,9 @@ struct Adjustments: Codable, Equatable, Sendable {
             case .clarity: clarity
             case .noiseReduction: noiseReduction
             case .grain: grain
+            case .vignette: vignette
+            case .skinHue: skinHue
+            case .skinLuminance: skinLuminance
             }
         }
         set {
@@ -135,6 +145,9 @@ struct Adjustments: Codable, Equatable, Sendable {
             case .clarity: clarity = value
             case .noiseReduction: noiseReduction = value
             case .grain: grain = value
+            case .vignette: vignette = value
+            case .skinHue: skinHue = value
+            case .skinLuminance: skinLuminance = value
             }
         }
     }
@@ -144,6 +157,7 @@ enum AdjustmentKey: String, CaseIterable, Codable, Identifiable, Sendable {
     case exposure, brightness, contrast, highlights, shadows, whites, blacks
     case temperature, tint, saturation, vibrance
     case sharpness, clarity, noiseReduction, grain
+    case vignette, skinHue, skinLuminance
 
     var id: String { rawValue }
     var descriptor: AdjustmentDescriptor {
@@ -163,6 +177,9 @@ enum AdjustmentKey: String, CaseIterable, Codable, Identifiable, Sendable {
         case .clarity: .init(key: self, title: "Clarity", category: .detail, range: -100...100, defaultValue: 0, displayFormat: .signedInteger)
         case .noiseReduction: .init(key: self, title: "Noise Reduction", category: .detail, range: 0...100, defaultValue: 0, displayFormat: .unsignedInteger)
         case .grain: .init(key: self, title: "Grain", category: .detail, range: 0...100, defaultValue: 0, displayFormat: .unsignedInteger)
+        case .vignette: .init(key: self, title: "Vignette", category: .detail, range: -100...100, defaultValue: 0, displayFormat: .signedInteger)
+        case .skinHue: .init(key: self, title: "Skin Hue", category: .color, range: -100...100, defaultValue: 0, displayFormat: .signedInteger)
+        case .skinLuminance: .init(key: self, title: "Skin Brightness", category: .color, range: -100...100, defaultValue: 0, displayFormat: .signedInteger)
         }
     }
 

@@ -63,7 +63,7 @@ struct HomeView: View {
             }
         case .replica:
             ColorReplicaView { project, original in
-                showEditor(project: project, original: original, tool: .filter)
+                showEditor(project: project, original: original, tool: .adjust)
             }
         case .editor(let editor):
             EditorView(

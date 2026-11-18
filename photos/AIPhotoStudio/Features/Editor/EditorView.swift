@@ -3,7 +3,6 @@ import SwiftUI
 struct EditorView: View {
     enum Tool: String, CaseIterable, Hashable {
         case adjust = "Adjust"
-        case curves = "Curves"
         case filter = "Filter"
         case crop = "Crop"
         case recipe = "Recipe"
@@ -14,9 +13,10 @@ struct EditorView: View {
     @StateObject private var session: EditorSession
     private let onRequestClose: (() -> Void)?
     @State private var selectedTool: Tool
+    @State private var activeAdjustTool: AdjustTool?
     @State private var presetGroup: PresetGroup = .recommended
     @State private var isComparing = false
-    @State private var presentsManualAdjust = false
+    @State private var isClosing = false
     @State private var saveError: String?
     @State private var exportPayload: EditorExportPayload?
 
@@ -25,11 +25,9 @@ struct EditorView: View {
         project: PhotoProject? = nil,
         repository: PhotoProjectRepository? = nil,
         onRequestClose: (() -> Void)? = nil,
-        initialTool: Tool = .filter,
-        opensAdjustments: Bool = false
+        initialTool: Tool = .filter
     ) {
         self.onRequestClose = onRequestClose
-        _presentsManualAdjust = State(initialValue: opensAdjustments)
         _selectedTool = State(initialValue: initialTool)
         _session = StateObject(wrappedValue: EditorSession(
             original: original,
@@ -43,15 +41,14 @@ struct EditorView: View {
             editorHeader
             preview
             toolControls
-            editorTabBar
+            if activeAdjustTool == nil {
+                editorTabBar
+            }
         }
         .background(FilmToneTheme.background.ignoresSafeArea())
         .foregroundStyle(FilmToneTheme.primaryText)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
-        .navigationDestination(isPresented: $presentsManualAdjust) {
-            ManualAdjustView(session: session, onSave: saveAndClose)
-        }
         .alert(L10n.text("Unable to save"), isPresented: Binding(
             get: { saveError != nil },
             set: { if !$0 { saveError = nil } }
@@ -140,7 +137,7 @@ struct EditorView: View {
                 .font(FilmToneTheme.pageTitle)
                 .lineLimit(1)
             HStack(spacing: 16) {
-                Button(action: closeEditor) {
+                Button(action: saveAndClose) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .semibold))
                         .frame(width: 22, height: 22)
@@ -162,18 +159,14 @@ struct EditorView: View {
                 .disabled(!session.canRedo)
                 .accessibilityLabel(L10n.text("Redo"))
                 Button(action: export) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 16, weight: .medium))
-                        .frame(width: 22, height: 22)
-                }
-                .disabled(session.exportProject == nil)
-                .accessibilityLabel(L10n.text("Export"))
-                Button(action: saveAndClose) {
-                    Text(L10n.text("Save"))
+                    Text(L10n.text("Export"))
                         .font(FilmToneTheme.button)
                         .foregroundStyle(FilmToneTheme.accent)
                 }
+                .disabled(session.exportProject == nil)
             }
+            .disabled(activeAdjustTool != nil || isClosing)
+            .opacity(activeAdjustTool == nil ? 1 : 0.4)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -188,7 +181,7 @@ struct EditorView: View {
                 editorTab(.filter, symbol: "camera.filters", title: "Presets")
                 editorTab(.adjust, symbol: "slider.horizontal.3", title: "Adjust")
                 editorTab(.crop, symbol: "crop", title: "Crop")
-                editorTab(.recipe, symbol: "swatchpalette", title: "Save Grade")
+                editorTab(.recipe, symbol: "swatchpalette", title: "Recipe")
             }
             .padding(.top, 8)
             .padding(.bottom, 8)
@@ -200,11 +193,7 @@ struct EditorView: View {
         let selected = selectedTool == tool
         let color = selected ? FilmToneTheme.accent : FilmToneTheme.secondaryText
         return Button {
-            if tool == .adjust {
-                presentsManualAdjust = true
-            } else {
-                selectedTool = tool
-            }
+            selectedTool = tool
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: symbol)
@@ -245,7 +234,10 @@ struct EditorView: View {
     }
 
     private func saveAndClose() {
+        guard !isClosing else { return }
+        isClosing = true
         Task {
+            defer { isClosing = false }
             do {
                 try await session.complete()
                 closeEditor()
@@ -259,23 +251,16 @@ struct EditorView: View {
     private var toolControls: some View {
         switch selectedTool {
         case .adjust:
-            EmptyView()
-        case .curves:
-            VStack(spacing: 8) {
-                HStack {
-                    Button {
-                        selectedTool = .filter
-                    } label: {
-                        Label(L10n.text("Adjust"), systemImage: "chevron.left")
-                            .font(FilmToneTheme.body.weight(.semibold))
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
+            if let activeAdjustTool {
+                AdjustToolPanel(tool: activeAdjustTool, session: session) {
+                    self.activeAdjustTool = nil
                 }
-                curveControls
+            } else {
+                AdjustToolStrip(session: session) { tool in
+                    session.beginToolEdit(summary: L10n.text(tool.title))
+                    activeAdjustTool = tool
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
         case .filter:
             filterControls
         case .crop:
@@ -283,10 +268,6 @@ struct EditorView: View {
         case .recipe:
             RecipeView(session: session)
         }
-    }
-
-    private var curveControls: some View {
-        CurveControls(session: session)
     }
 
     private var filterControls: some View {
@@ -450,262 +431,11 @@ private enum PresetGroup: String, CaseIterable, Identifiable {
     }
 }
 
-private struct ManualAdjustView: View {
-    @ObservedObject var session: EditorSession
-    let onSave: () -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var isComparing = false
-
-    private let controls: [(AdjustmentKey, String)] = [
-        (.exposure, "Exposure"),
-        (.vibrance, "Brilliance"),
-        (.highlights, "Highlights"),
-        (.shadows, "Shadows")
-    ]
-
-    var body: some View {
-        VStack(spacing: 0) {
-            header
-            preview
-            VStack(spacing: 22) {
-                ForEach(controls, id: \.0) { key, title in
-                    let descriptor = key.descriptor
-                    AppSlider(
-                        title: L10n.text(title),
-                        value: Binding(
-                            get: { session.value(for: key) },
-                            set: { session.setValue($0, for: key) }
-                        ),
-                        range: descriptor.range,
-                        displayValue: descriptor.displayValue,
-                        onEditingChanged: {
-                            $0 ? session.beginAdjustment(key) : session.endAdjustment()
-                        },
-                        titleResets: false,
-                        valueIsAccent: true
-                    )
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
-            footer
-        }
-        .background(FilmToneTheme.background.ignoresSafeArea())
-        .foregroundStyle(FilmToneTheme.primaryText)
-        .navigationBarBackButtonHidden()
-        .toolbar(.hidden, for: .navigationBar)
-    }
-
-    private var header: some View {
-        ZStack {
-            Text(L10n.text("Manual Adjust"))
-                .font(FilmToneTheme.pageTitle)
-                .lineLimit(1)
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .frame(width: 22, height: 22)
-                }
-                .accessibilityLabel(L10n.text("Back"))
-                Spacer()
-                Button(action: onSave) {
-                    Text(L10n.text("Save"))
-                        .font(FilmToneTheme.button)
-                        .foregroundStyle(FilmToneTheme.accent)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-    }
-
-    private var preview: some View {
-        ZStack(alignment: .bottomLeading) {
-            ImageCanvas(
-                editedImage: editedImage,
-                originalImage: session.originalPreview,
-                isComparing: $isComparing,
-                showsChrome: false
-            )
-            Image(systemName: isComparing ? "eye.fill" : "eye")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(FilmToneTheme.primaryText)
-                .frame(width: 32, height: 32)
-                .background(Color.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .padding(12)
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in isComparing = true }
-                        .onEnded { _ in isComparing = false }
-                )
-                .accessibilityLabel(L10n.text("Compare"))
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var footer: some View {
-        HStack {
-            Button(action: resetShownControls) {
-                Text(L10n.text("Reset"))
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(FilmToneTheme.secondaryText)
-            }
-            .buttonStyle(.plain)
-            Spacer()
-            Button(action: { dismiss() }) {
-                Text(L10n.text("Done"))
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(FilmToneTheme.accentText)
-                    .frame(width: 99, height: 44)
-                    .background(
-                        FilmToneTheme.accent,
-                        in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    )
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-        .background(FilmToneTheme.tabBar.ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(FilmToneTheme.divider)
-                .frame(height: 1)
-        }
-    }
-
-    private var editedImage: CGImage? {
-        if case .ready(let image) = session.preview { return image }
-        return nil
-    }
-
-    private func resetShownControls() {
-        controls.forEach { session.resetCurrent($0.0) }
-    }
-}
-
 private struct EditorExportPayload: Identifiable {
     let id = UUID()
     let project: PhotoProject
     let editState: EditState
     let repository: PhotoProjectRepository
-}
-
-private extension EditorView.Tool {
-    var icon: String {
-        switch self {
-        case .adjust: "slider.horizontal.3"
-        case .curves: "point.topleft.down.curvedto.point.bottomright.up"
-        case .filter: "camera.filters"
-        case .crop: "crop"
-        case .recipe: "swatch.variable"
-        }
-    }
-}
-
-private struct CurveControls: View {
-    @ObservedObject var session: EditorSession
-    @State private var channel: CurveChannel = .rgb
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Picker(L10n.text("Channel"), selection: $channel) {
-                ForEach(CurveChannel.allCases) { item in
-                    Text(item.title).tag(item)
-                }
-            }
-            .pickerStyle(.segmented)
-            CurveGraph(
-                curve: Binding(
-                    get: { session.curves[channel] },
-                    set: { updated in
-                        var curves = session.curves
-                        curves[channel] = updated
-                        session.setCurvePreview(curves)
-                    }
-                ),
-                tint: tint,
-                onEditingChanged: { editing in
-                    editing ? session.beginCurveEdit() : session.endCurveEdit()
-                }
-            )
-            Button(L10n.text("Reset Curve")) { session.resetCurves() }
-                .buttonStyle(.bordered)
-                .disabled(session.curves.isIdentity)
-        }
-        .padding()
-    }
-
-    private var tint: Color {
-        switch channel {
-        case .rgb: .white
-        case .red: .red
-        case .green: .green
-        case .blue: .blue
-        }
-    }
-}
-
-private struct CurveGraph: View {
-    @Binding var curve: ChannelCurve
-    let tint: Color
-    let onEditingChanged: (Bool) -> Void
-
-    var body: some View {
-        GeometryReader { proxy in
-            let size = proxy.size
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.black.opacity(0.35))
-                Path { path in
-                    stride(from: 0.25, through: 0.75, by: 0.25).forEach { mark in
-                        let x = size.width * mark
-                        let y = size.height * (1 - mark)
-                        path.move(to: CGPoint(x: x, y: 0))
-                        path.addLine(to: CGPoint(x: x, y: size.height))
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addLine(to: CGPoint(x: size.width, y: y))
-                    }
-                }
-                .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                Path { path in
-                    guard let first = curve.points.first else { return }
-                    path.move(to: position(first, in: size))
-                    curve.points.dropFirst().forEach { path.addLine(to: position($0, in: size)) }
-                }
-                .stroke(tint, style: StrokeStyle(lineWidth: 2, lineJoin: .round))
-                ForEach(curve.points.indices, id: \.self) { index in
-                    Circle()
-                        .fill(tint)
-                        .overlay(Circle().stroke(Color.black.opacity(0.45), lineWidth: 1))
-                        .frame(width: 18, height: 18)
-                        .position(position(curve.points[index], in: size))
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    onEditingChanged(true)
-                                    let y = 1 - min(max(value.location.y / max(size.height, 1), 0), 1)
-                                    curve.setPoint(at: index, y: y)
-                                }
-                                .onEnded { _ in onEditingChanged(false) }
-                        )
-                }
-            }
-        }
-        .frame(height: 180)
-        .accessibilityLabel(L10n.text("Curves"))
-    }
-
-    private func position(_ point: CurvePoint, in size: CGSize) -> CGPoint {
-        CGPoint(x: size.width * point.x, y: size.height * (1 - point.y))
-    }
 }
 
 private struct FilterThumbnail: View {

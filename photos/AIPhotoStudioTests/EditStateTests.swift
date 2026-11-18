@@ -289,8 +289,74 @@ final class EditStateTests: XCTestCase {
         }
     }
 
-    func testAllFifteenAdjustmentDescriptorsHaveValidDefaultsAndRanges() {
-        XCTAssertEqual(AdjustmentKey.allCases.count, 15)
+    func testSkinToneShiftsOnlySkinColors() {
+        let skin = SkinToneRenderer.adjust(red: 0.85, green: 0.62, blue: 0.48, hue: -100, luminance: 0)
+        XCTAssertLessThan(skin.1, 0.62)
+        XCTAssertEqual(skin.0, 0.85, accuracy: 0.001)
+
+        let brighter = SkinToneRenderer.adjust(red: 0.6, green: 0.44, blue: 0.34, hue: 0, luminance: 100)
+        XCTAssertGreaterThan(brighter.0, 0.6)
+
+        for color in [(0.2, 0.4, 0.8), (0.5, 0.5, 0.5), (0.1, 0.7, 0.2)] {
+            let mapped = SkinToneRenderer.adjust(red: color.0, green: color.1, blue: color.2, hue: -100, luminance: 100)
+            XCTAssertEqual(mapped.0, color.0, accuracy: 0.001)
+            XCTAssertEqual(mapped.1, color.1, accuracy: 0.001)
+            XCTAssertEqual(mapped.2, color.2, accuracy: 0.001)
+        }
+    }
+
+    func testVignetteDarkensCornersAndKeepsCenter() {
+        let gray = CIImage(color: CIColor(red: 0.5, green: 0.5, blue: 0.5))
+            .cropped(to: CGRect(x: 0, y: 0, width: 200, height: 200))
+        var edits = EditState()
+        edits.adjustments.vignette = -100
+        let output = RenderPipeline().process(original: gray, orientation: .up, edits: edits)
+        let plain = RenderPipeline().process(original: gray, orientation: .up, edits: EditState())
+
+        XCTAssertLessThan(Int(pixel(output, at: CGPoint(x: 1, y: 1))[0]) + 20, Int(pixel(plain, at: CGPoint(x: 1, y: 1))[0]))
+        XCTAssertEqual(
+            Int(pixel(output, at: CGPoint(x: 100, y: 100))[0]),
+            Int(pixel(plain, at: CGPoint(x: 100, y: 100))[0]),
+            accuracy: 2
+        )
+    }
+
+    func testEveryAdjustmentChangesTheRenderedImage() throws {
+        let skin = CIImage(color: CIColor(red: 0.85, green: 0.62, blue: 0.48))
+        let checker = CIFilter(name: "CICheckerboardGenerator", parameters: [
+            "inputColor0": CIColor(red: 0.95, green: 0.75, blue: 0.62),
+            "inputColor1": CIColor(red: 0.45, green: 0.30, blue: 0.22),
+            "inputWidth": 3
+        ])!.outputImage!
+        let source = checker
+            .applyingFilter("CISourceOverCompositing", parameters: [kCIInputBackgroundImageKey: skin])
+            .cropped(to: CGRect(x: 0, y: 0, width: 48, height: 48))
+        let baseline = render(source, EditState())
+
+        for key in AdjustmentKey.allCases {
+            var edits = EditState()
+            let range = key.descriptor.range
+            edits.adjustments[key] = range.lowerBound < 0 ? range.lowerBound : range.upperBound
+            XCTAssertNotEqual(render(source, edits), baseline, key.rawValue)
+        }
+    }
+
+    private func render(_ image: CIImage, _ edits: EditState) -> [UInt8] {
+        let output = RenderPipeline().process(original: image, orientation: .up, edits: edits)
+        var bytes = [UInt8](repeating: 0, count: 48 * 48 * 4)
+        CIContext().render(
+            output,
+            toBitmap: &bytes,
+            rowBytes: 48 * 4,
+            bounds: CGRect(x: 0, y: 0, width: 48, height: 48),
+            format: .RGBA8,
+            colorSpace: CGColorSpace(name: CGColorSpace.sRGB)!
+        )
+        return bytes
+    }
+
+    func testAllAdjustmentDescriptorsHaveValidDefaultsAndRanges() {
+        XCTAssertEqual(AdjustmentKey.allCases.count, 18)
         var values = Adjustments()
         for key in AdjustmentKey.allCases {
             let descriptor = key.descriptor
@@ -637,13 +703,13 @@ final class EditStateTests: XCTestCase {
         return output as Data
     }
 
-    private func pixel(_ image: CIImage) -> [UInt8] {
+    private func pixel(_ image: CIImage, at point: CGPoint = .zero) -> [UInt8] {
         var bytes = [UInt8](repeating: 0, count: 4)
         CIContext().render(
             image,
             toBitmap: &bytes,
             rowBytes: 4,
-            bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+            bounds: CGRect(x: point.x, y: point.y, width: 1, height: 1),
             format: .RGBA8,
             colorSpace: CGColorSpace(name: CGColorSpace.sRGB)!
         )

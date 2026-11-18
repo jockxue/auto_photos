@@ -355,3 +355,18 @@
 "2048 px" = "2048 px";
 "Long edge up to 3840 pixels." = "Long edge up to 3840 pixels.";
 "Long edge up to 2048 pixels." = "Long edge up to 2048 pixels.";
+
+"White Balance" = "White Balance";
+"Sharpen" = "Sharpen";
+"Vignette" = "Vignette";
+"Skin Tone" = "Skin Tone";
+"Hue" = "Hue";
+"Effects" = "Effects";
+"Skin Hue" = "Skin Hue";
+"Skin Brightness" = "Skin Brightness";
+"Magenta" = "Magenta";
+"Rosy" = "Rosy";
+"Yellowish" = "Yellowish";
+"Darken Edges" = "Darken Edges";
+"Lighten Edges" = "Lighten Edges";
+"Skin is detected by color, so warm backgrounds may change too." = "Skin is detected by color, so warm backgrounds may change too.";

@@ -353,3 +353,18 @@
 "2048 px" = "2048 像素";
 "Long edge up to 3840 pixels." = "長邊最多 3840 像素";
 "Long edge up to 2048 pixels." = "長邊最多 2048 像素";
+
+"White Balance" = "白平衡";
+"Sharpen" = "銳化";
+"Vignette" = "暗角";
+"Skin Tone" = "膚色";
+"Hue" = "色相";
+"Effects" = "效果";
+"Skin Hue" = "膚色色相";
+"Skin Brightness" = "膚色亮度";
+"Magenta" = "洋紅";
+"Rosy" = "紅潤";
+"Yellowish" = "偏黃";
+"Darken Edges" = "壓暗四角";
+"Lighten Edges" = "提亮四角";
+"Skin is detected by color, so warm backgrounds may change too." = "按顏色識別膚色，夕陽、麥田等暖色背景也可能一起變化";

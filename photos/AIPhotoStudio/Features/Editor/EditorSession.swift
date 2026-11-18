@@ -105,6 +105,30 @@ final class EditorSession: ObservableObject {
         scheduleAutosave()
     }
 
+    private var toolBaseline: EditState?
+
+    /// Groups every change made while one adjustment panel is open into a single undo step.
+    func beginToolEdit(summary: String) {
+        guard toolBaseline == nil else { return }
+        toolBaseline = document.editState
+        history.begin(kind: .adjust, state: document.editState, summary: summary)
+    }
+
+    func commitToolEdit() {
+        guard toolBaseline != nil else { return }
+        toolBaseline = nil
+        history.end(state: document.editState)
+        scheduleAutosave()
+    }
+
+    func cancelToolEdit() {
+        guard let toolBaseline else { return }
+        document.editState = toolBaseline
+        self.toolBaseline = nil
+        history.end(state: document.editState)
+        renderPreview()
+    }
+
     func resetCurrent(_ key: AdjustmentKey) {
         let before = document.editState
         document.editState.adjustments[key] = key.descriptor.defaultValue

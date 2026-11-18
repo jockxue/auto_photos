@@ -243,7 +243,7 @@ private struct ReplicaPreviewView: View {
             }
             HStack(spacing: 12) {
                 Button { Task { await save(continueEditing: true) } } label: {
-                    Text(L10n.text("Continue Adjusting"))
+                    Label(L10n.text("Edit Photo"), systemImage: "slider.horizontal.3")
                         .font(FilmToneTheme.button)
                         .frame(maxWidth: .infinity).frame(height: 50)
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(FilmToneTheme.divider))

@@ -137,6 +137,7 @@ private struct ColorProcessor: RenderStageProcessor {
         image = image.applyingFilter("CIVibrance", parameters: [
             "inputAmount": value.vibrance / 100
         ])
+        image = SkinToneRenderer.apply(hue: value.skinHue, luminance: value.skinLuminance, to: image)
         let curved = CurveRenderer.apply(edits.curves, to: image)
         guard let mapping = edits.colorMapping else { return curved }
         return RecipeColorCubeBuilder.apply(mapping, to: curved)
@@ -170,6 +171,134 @@ enum CurveRenderer {
             "inputCubeDimension": dimension,
             "inputCubeData": data
         ])
+    }
+}
+
+/// Shifts only skin-like colors: warm hues with moderate saturation. Negative hue
+/// moves skin toward red, positive toward yellow; luminance brightens or darkens it.
+enum SkinToneRenderer {
+    private static let dimension = 33
+    private static let cache = CubeCache()
+
+    static func apply(hue: Double, luminance: Double, to image: CIImage) -> CIImage {
+        guard hue != 0 || luminance != 0 else { return image }
+        return image.applyingFilter("CIColorCubeWithColorSpace", parameters: [
+            "inputCubeDimension": dimension,
+            "inputCubeData": cubeData(hue: hue, luminance: luminance),
+            "inputColorSpace": CGColorSpace(name: CGColorSpace.sRGB)!
+        ])
+    }
+
+    static func adjust(
+        red: Double, green: Double, blue: Double, hue: Double, luminance: Double
+    ) -> (Double, Double, Double) {
+        var (h, s, v) = hsv(red: red, green: green, blue: blue)
+        let weight = skinWeight(hue: h, saturation: s, value: v)
+        guard weight > 0 else { return (red, green, blue) }
+        h += hue / 100 * (12.0 / 360) * weight
+        h -= h.rounded(.down)
+        v = min(max(v * (1 + luminance / 100 * 0.25 * weight), 0), 1)
+        return rgb(hue: h, saturation: s, value: v)
+    }
+
+    static func skinWeight(hue: Double, saturation: Double, value: Double) -> Double {
+        let center = 25.0 / 360
+        let halfWidth = 30.0 / 360
+        var distance = abs(hue - center)
+        distance = min(distance, 1 - distance)
+        let hueWeight = smoothstep(0, 1, 1 - distance / halfWidth)
+        let saturationWeight = smoothstep(0.08, 0.2, saturation) * (1 - smoothstep(0.7, 0.95, saturation))
+        let valueWeight = smoothstep(0.1, 0.25, value)
+        return hueWeight * saturationWeight * valueWeight
+    }
+
+    private static func cubeData(hue: Double, luminance: Double) -> Data {
+        let key = CubeCache.Key(hue: hue, luminance: luminance)
+        if let cached = cache.value(for: key) { return cached }
+        let scale = Double(dimension - 1)
+        var samples = [Float]()
+        samples.reserveCapacity(dimension * dimension * dimension * 4)
+        for b in 0..<dimension {
+            for g in 0..<dimension {
+                for r in 0..<dimension {
+                    let mapped = adjust(
+                        red: Double(r) / scale, green: Double(g) / scale, blue: Double(b) / scale,
+                        hue: hue, luminance: luminance
+                    )
+                    samples.append(Float(mapped.0))
+                    samples.append(Float(mapped.1))
+                    samples.append(Float(mapped.2))
+                    samples.append(1)
+                }
+            }
+        }
+        let data = samples.withUnsafeBytes { Data($0) }
+        cache.store(data, for: key)
+        return data
+    }
+
+    private static func smoothstep(_ edge0: Double, _ edge1: Double, _ x: Double) -> Double {
+        let t = min(max((x - edge0) / (edge1 - edge0), 0), 1)
+        return t * t * (3 - 2 * t)
+    }
+
+    private static func hsv(red: Double, green: Double, blue: Double) -> (Double, Double, Double) {
+        let maximum = max(red, green, blue)
+        let minimum = min(red, green, blue)
+        let delta = maximum - minimum
+        var hue = 0.0
+        if delta > 0 {
+            if maximum == red {
+                hue = (green - blue) / delta
+            } else if maximum == green {
+                hue = (blue - red) / delta + 2
+            } else {
+                hue = (red - green) / delta + 4
+            }
+            hue /= 6
+            if hue < 0 { hue += 1 }
+        }
+        return (hue, maximum == 0 ? 0 : delta / maximum, maximum)
+    }
+
+    private static func rgb(hue: Double, saturation: Double, value: Double) -> (Double, Double, Double) {
+        let sector = hue * 6
+        let index = Int(sector.rounded(.down)) % 6
+        let fraction = sector - sector.rounded(.down)
+        let p = value * (1 - saturation)
+        let q = value * (1 - saturation * fraction)
+        let t = value * (1 - saturation * (1 - fraction))
+        switch index {
+        case 0: return (value, t, p)
+        case 1: return (q, value, p)
+        case 2: return (p, value, t)
+        case 3: return (p, q, value)
+        case 4: return (t, p, value)
+        default: return (value, p, q)
+        }
+    }
+
+    /// Slider drags re-render with the same values many times; keep the last cube.
+    private final class CubeCache: @unchecked Sendable {
+        struct Key: Equatable {
+            let hue: Double
+            let luminance: Double
+        }
+
+        private let lock = NSLock()
+        private var entry: (Key, Data)?
+
+        func value(for key: Key) -> Data? {
+            lock.lock()
+            defer { lock.unlock() }
+            return entry?.0 == key ? entry?.1 : nil
+        }
+
+        func store(_ data: Data, for key: Key) {
+            lock.lock()
+            entry = (key, data)
+            lock.unlock()
+        }
     }
 }
 
@@ -218,6 +347,17 @@ private struct DetailProcessor: RenderStageProcessor {
             image = noise.applyingFilter("CIOverlayBlendMode", parameters: [
                 kCIInputBackgroundImageKey: image
             ]).cropped(to: image.extent)
+        }
+        if value.vignette != 0 {
+            let extent = image.extent
+            // CIVignetteEffect lightens far more strongly than it darkens, so the two sides scale differently.
+            let strength = value.vignette < 0 ? 0.6 : 0.12
+            image = image.applyingFilter("CIVignetteEffect", parameters: [
+                kCIInputCenterKey: CIVector(x: extent.midX, y: extent.midY),
+                kCIInputRadiusKey: hypot(extent.width, extent.height) / 2 * 0.55,
+                kCIInputIntensityKey: -value.vignette / 100 * strength,
+                "inputFalloff": 0.7
+            ]).cropped(to: extent)
         }
         return image
     }

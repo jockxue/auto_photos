@@ -52,6 +52,7 @@
 		AA0000000000000000000024 /* Core/Imaging/RecipeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */; };
 		AA0000000000000000000025 /* Core/Persistence/RecipeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */; };
 		AA0000000000000000000026 /* Features/Editor/RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002E /* Features/Editor/RecipeView.swift */; };
+		AA0000000000000000000045 /* Features/Editor/AdjustToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000045 /* Features/Editor/AdjustToolsView.swift */; };
 		AA0000000000000000000027 /* RecipeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000000000000000000002F /* RecipeTests.swift */; };
 		AA0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */; };
 		AA0000000000000000000031 /* RecipePaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000031 /* RecipePaletteTests.swift */; };
@@ -130,6 +131,7 @@
 		BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipeEngine.swift; sourceTree = "<group>"; };
 		BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Persistence/RecipeStore.swift; sourceTree = "<group>"; };
 		BB000000000000000000002E /* Features/Editor/RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/RecipeView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000045 /* Features/Editor/AdjustToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Editor/AdjustToolsView.swift; sourceTree = "<group>"; };
 		BB000000000000000000002F /* RecipeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTests.swift; sourceTree = "<group>"; };
 		BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Imaging/RecipePaletteAnalyzer.swift; sourceTree = "<group>"; };
 		BB0000000000000000000031 /* RecipePaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipePaletteTests.swift; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				BB000000000000000000002C /* Core/Imaging/RecipeEngine.swift */,
 				BB000000000000000000002D /* Core/Persistence/RecipeStore.swift */,
 				BB000000000000000000002E /* Features/Editor/RecipeView.swift */,
+				BB0000000000000000000045 /* Features/Editor/AdjustToolsView.swift */,
 				BB0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift */,
 				BB0000000000000000000032 /* Core/Imaging/ColorSpace.swift */,
 				BB0000000000000000000034 /* Domain/ColorMapping.swift */,
@@ -399,6 +402,7 @@
 				AA0000000000000000000024 /* Core/Imaging/RecipeEngine.swift in Sources */,
 				AA0000000000000000000025 /* Core/Persistence/RecipeStore.swift in Sources */,
 				AA0000000000000000000026 /* Features/Editor/RecipeView.swift in Sources */,
+				AA0000000000000000000045 /* Features/Editor/AdjustToolsView.swift in Sources */,
 				AA0000000000000000000030 /* Core/Imaging/RecipePaletteAnalyzer.swift in Sources */,
 				AA0000000000000000000032 /* Core/Imaging/ColorSpace.swift in Sources */,
 				AA0000000000000000000034 /* Domain/ColorMapping.swift in Sources */,

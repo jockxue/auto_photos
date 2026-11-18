@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>FilmTone 编辑照片 效果图</title>
+<style>
+  :root {
+    --bg: #121212; --text: #F5F5F7; --text2: #8E8E93; --accent: #E2B56A; --accentText: #2A2116;
+    --chip: #2A2A2C; --track: #3A3A3C; --card: #1C1C1E; --tabbar: #0C0C0C; --inactive: #6A6A6E;
+    --divider: rgba(255,255,255,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #2b2b2e; font-family: -apple-system, "PingFang SC", sans-serif; color: var(--text); padding: 40px; }
+  h1 { font-size: 26px; margin-bottom: 6px; }
+  .lead { color: #b5b5ba; font-size: 14px; margin-bottom: 28px; }
+  .row { display: flex; gap: 36px; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  .cap { font-size: 15px; font-weight: 600; }
+  .cap small { display: block; color: #a0a0a6; font-weight: 400; font-size: 12px; margin-top: 4px; max-width: 390px; line-height: 1.5; }
+
+  .phone { width: 390px; height: 844px; background: var(--bg); border-radius: 44px; overflow: hidden; position: relative;
+           display: flex; flex-direction: column; box-shadow: 0 0 0 10px #0a0a0a, 0 20px 50px rgba(0,0,0,.5); }
+  .status { height: 47px; display: flex; justify-content: space-between; align-items: center; padding: 0 32px; font-size: 16px; font-weight: 600; }
+  .status .r { font-size: 12px; letter-spacing: 1px; }
+  .ic { display: inline-block; width: 22px; height: 22px; background: currentColor;
+        -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+
+  .header { height: 52px; display: flex; align-items: center; padding: 0 12px; position: relative; }
+  .header .title { position: absolute; left: 0; right: 0; text-align: center; font-size: 17px; font-weight: 600; pointer-events: none; }
+  .header .sp { flex: 1; }
+  .header .btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .header .btn.dim { color: var(--inactive); }
+  .header .export { color: var(--accent); font-weight: 600; font-size: 16px; margin-left: 6px; }
+
+  .preview { flex: 1; margin: 8px 16px 0; border-radius: 16px; overflow: hidden; position: relative; background: #000; }
+  .preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .preview .compare { position: absolute; left: 12px; bottom: 12px; width: 32px; height: 32px; border-radius: 8px;
+                      background: rgba(0,0,0,.72); display: flex; align-items: center; justify-content: center; }
+  .preview .compare .ic { width: 18px; height: 18px; }
+  .preview .tag { position: absolute; right: 12px; bottom: 12px; font-size: 12px; padding: 8px 12px; border-radius: 99px; background: rgba(0,0,0,.6); }
+  .warm img { filter: saturate(1.15) brightness(1.08) contrast(1.05); }
+  .wb img { filter: sepia(.18) saturate(1.1) brightness(1.04); }
+
+  .chips { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .chip { height: 30px; padding: 0 14px; border-radius: 99px; background: var(--chip); font-size: 13px; display: flex; align-items: center; }
+  .chip.on { background: var(--accent); color: var(--accentText); font-weight: 600; }
+
+  .tools { display: flex; gap: 6px; padding: 16px 0 14px 12px; overflow: hidden; white-space: nowrap; }
+  .tool { width: 64px; flex: 0 0 64px; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; color: var(--text); }
+  .tool .ring { width: 48px; height: 48px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; }
+  .tool .ring .ic { width: 24px; height: 24px; }
+  .tool span { font-size: 11px; color: var(--text2); }
+  .tool.edited .ring { box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .tool.edited .ring .ic { color: var(--accent); }
+  .tool.edited span { color: var(--accent); }
+  .tool .dot { position: absolute; top: 0; right: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .tool .new { position: absolute; top: -4px; right: 2px; font-size: 9px; background: var(--accent); color: var(--accentText); border-radius: 6px; padding: 1px 4px; font-weight: 700; }
+  .fade { position: absolute; right: 0; width: 40px; height: 90px; background: linear-gradient(90deg, transparent, var(--bg)); pointer-events: none; }
+
+  .tabbar { border-top: 1px solid var(--divider); background: var(--tabbar); display: flex; padding: 8px 0 30px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text2); font-size: 11px; }
+  .tab .ic { width: 22px; height: 20px; }
+  .tab.on { color: var(--accent); }
+
+  .panel { padding: 16px 16px 34px; background: var(--tabbar); border-top: 1px solid var(--divider); }
+  .panel .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .panel .top .name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .panel .top .name .ic { width: 18px; height: 18px; color: var(--accent); }
+  .panel .round { width: 36px; height: 36px; border-radius: 50%; background: var(--chip); display: flex; align-items: center; justify-content: center; }
+  .panel .round.ok { background: var(--accent); color: var(--accentText); }
+  .panel .round .ic { width: 16px; height: 16px; }
+  .sl { margin-bottom: 20px; }
+  .sl .lab { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+  .sl .lab b { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .track { height: 4px; border-radius: 2px; background: var(--track); position: relative; }
+  .track .fill { position: absolute; top: 0; height: 4px; background: var(--accent); border-radius: 2px; }
+  .track .mid { position: absolute; left: 50%; top: -5px; width: 2px; height: 14px; background: #5a5a5e; border-radius: 1px; transform: translateX(-1px); }
+  .track .thumb { position: absolute; top: -9px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transform: translateX(-11px); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+  .track.temp { background: linear-gradient(90deg, #4a8fd9, #d9d9d9 50%, #e6b04a); }
+  .track.tint { background: linear-gradient(90deg, #4fbf6a, #d9d9d9 50%, #c85ac8); }
+  .track.skin { background: linear-gradient(90deg, #e58a8a, #e8c3a0 50%, #d9b25a); }
+  .ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--inactive); margin-top: 10px; }
+  .reset { display: flex; align-items: center; gap: 6px; color: var(--text2); font-size: 13px; justify-content: center; margin-top: 4px; }
+  .reset .ic { width: 14px; height: 14px; }
+  .note { font-size: 11px; color: var(--text2); text-align: center; margin-top: -6px; margin-bottom: 14px; }
+
+  .ref { display: flex; align-items: center; gap: 14px; background: var(--card); border-radius: 14px; padding: 12px; margin: 20px 20px 0; }
+  .ref img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }
+  .ref .t { flex: 1; font-size: 14px; }
+  .ref .c { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .ref .c .ic { width: 10px; height: 10px; }
+  .strength { padding: 20px 20px 0; }
+  .strength .lab { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 14px; }
+  .bottom2 { display: flex; gap: 12px; padding: 20px 20px 34px; }
+  .bottom2 .b { flex: 1; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; }
+  .bottom2 .b .ic { width: 18px; height: 18px; }
+  .bottom2 .sec { border: 1px solid rgba(255,255,255,.18); font-weight: 600; }
+  .bottom2 .pri { background: var(--accent); color: #1a1208; }
+  .hl { outline: 2px dashed #ff5a5a; outline-offset: 4px; }
+
+  table { border-collapse: collapse; margin-top: 44px; background: #1c1c1e; border-radius: 14px; overflow: hidden; font-size: 13px; }
+  th, td { padding: 10px 16px; text-align: left; border-bottom: 1px solid #2c2c2e; vertical-align: middle; }
+  th { background: #232326; color: #c7c7cc; font-weight: 600; }
+  td .ic { width: 20px; height: 20px; vertical-align: middle; }
+  .newtag { color: var(--accentText); background: var(--accent); border-radius: 6px; padding: 1px 6px; font-size: 11px; font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>FilmTone · 编辑照片 效果图</h1>
+<p class="lead">配色和字号沿用 App 现有的 FilmToneTheme：深色底 #121212、金色强调 #E2B56A。图标用 iOS 自带的 SF Symbols，和真机显示一致。</p>
+
+<div class="row">
+
+  <!-- 1. 仿色预览 -->
+  <div class="col">
+    <div class="phone">
+      <div class="status"><span>21:56</span><span class="r">●●●● 5G ▮</span></div>
+      <div class="header">
+        <span class="btn"><i class="ic" style="--i:url(icons/chevron.left.png)"></i></span>
+        <div class="title">仿色预览</div>
+      </div>
+      <div class="preview warm"><img src="sample.jpg"><div class="tag">按住查看原图</div></div>
+      <div class="ref">
+        <img src="HomeMatchColors.png">
+        <div class="t">参考色彩</div>
+        <div class="c">更换 <i class="ic" style="--i:url(icons/chevron.right.png)"></i></div>
+      </div>
+      <div class="strength">
+        <div class="lab"><span>仿色强度</span><span>70</span></div>
+        <div class="track"><div class="fill" style="left:0;width:70%"></div><div class="thumb" style="left:70%"></div></div>
+        <div class="ends"><span>轻微</span><span>浓郁</span></div>
+      </div>
+      <div class="bottom2">
+        <div class="b sec hl"><i class="ic" style="--i:url(icons/slider.horizontal.3.png)"></i>编辑照片</div>
+        <div class="b pri">应用色彩</div>
+      </div>
+    </div>
+    <div class="cap">① 仿色预览
+      <small>「继续微调」改名为「编辑照片」（红框）。点它会先按当前强度保存仿色结果，再进入编辑页并直接打开「调整」工具栏。「应用色彩」保持不变：保存后回首页。</small></div>
+  </div>
+
+  <!-- 2. 编辑照片：调整工具栏 -->
+  <div class="col">
+    <div class="phone">
+      <div class="status"><span>21:56</span><span class="r">●●●● 5G ▮</span></div>
+      <div class="header">
+        <span class="btn"><i class="ic" style="--i:url(icons/chevron.left.png)"></i></span>
+        <div class="title">编辑照片</div>
+        <div class="sp"></div>
+        <span class="btn"><i class="ic" style="--i:url(icons/arrow.uturn.backward.png)"></i></span>
+        <span class="btn dim"><i class="ic" style="--i:url(icons/arrow.uturn.forward.png)"></i></span>
+        <span class="export">导出</span>
+      </div>
+      <div class="preview warm"><img src="sample.jpg"><div class="compare"><i class="ic" style="--i:url(icons/eye.png)"></i></div></div>
+      <div class="chips">
+        <div class="chip on">全部</div><div class="chip">光线</div><div class="chip">颜色</div><div class="chip">细节</div><div class="chip">效果</div>
+      </div>
+      <div style="position:relative">
+        <div class="tools">
+          <div class="tool edited"><div class="dot"></div><div class="ring"><i class="ic" style="--i:url(icons/plusminus.circle.png)"></i></div><span>曝光</span></div>
+          <div class="tool"><div class="ring"><i class="ic" style="--i:url(icons/circle.lefthalf.filled.png)"></i></div><span>对比度</span></div>
+          <div class="tool"><div class="ring"><i class="ic" style="--i:url(icons/drop.fill.png)"></i></div><span>饱和度</span></div>
+          <div class="tool"><div class="ring"><i class="ic" style="--i:url(icons/circle.tophalf.filled.png)"></i></div><span>高光</span></div>
+          <div class="tool"><div class="ring"><i class="ic" style="--i:url(icons/circle.bottomhalf.filled.png)"></i></div><span>阴影</span></div>
+          <div class="tool"><div class="ring"><i class="ic" style="--i:url(icons/thermometer.medium.png)"></i></div><span>白平衡</span></div>
+        </div>
+        <div class="fade" style="top:10px"></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><i class="ic" style="--i:url(icons/camera.filters.png)"></i>预设</div>
+        <div class="tab on"><i class="ic" style="--i:url(icons/slider.horizontal.3.png)"></i>调整</div>
+        <div class="tab"><i class="ic" style="--i:url(icons/crop.png)"></i>裁剪</div>
+        <div class="tab"><i class="ic" style="--i:url(icons/swatchpalette.png)"></i>配方</div>
+      </div>
+    </div>
+    <div class="cap">② 编辑照片 · 调整工具栏
+      <small>上面一排是分类标签，下面一排工具可以左右滑动，共 17 个。调过的工具图标会变成金色并带小圆点，一眼能看出改了哪些。底部四个 Tab 保持不变，曲线也放进这一排工具里。</small></div>
+  </div>
+
+  <!-- 3. 单个工具：曝光 -->
+  <div class="col">
+    <div class="phone">
+      <div class="status"><span>21:56</span><span class="r">●●●● 5G ▮</span></div>
+      <div class="header">
+        <span class="btn dim"><i class="ic" style="--i:url(icons/chevron.left.png)"></i></span>
+        <div class="title">编辑照片</div>
+        <div class="sp"></div>
+        <span class="btn"><i class="ic" style="--i:url(icons/arrow.uturn.backward.png)"></i></span>
+        <span class="btn dim"><i class="ic" style="--i:url(icons/arrow.uturn.forward.png)"></i></span>
+        <span class="export">导出</span>
+      </div>
+      <div class="preview warm"><img src="sample.jpg"><div class="compare"><i class="ic" style="--i:url(icons/eye.png)"></i></div></div>
+      <div class="panel">
+        <div class="top">
+          <div class="round"><i class="ic" style="--i:url(icons/xmark.png)"></i></div>
+          <div class="name"><i class="ic" style="--i:url(icons/plusminus.circle.png)"></i>曝光</div>
+          <div class="round ok"><i class="ic" style="--i:url(icons/checkmark.png)"></i></div>
+        </div>
+        <div class="sl">
+          <div class="lab"><span>-2.0</span><b>+0.35 EV</b><span>+2.0</span></div>
+          <div class="track"><div class="mid"></div><div class="fill" style="left:50%;width:8.75%"></div><div class="thumb" style="left:58.75%"></div></div>
+        </div>
+        <div class="reset"><i class="ic" style="--i:url(icons/arrow.counterclockwise.png)"></i>重置</div>
+      </div>
+    </div>
+    <div class="cap">③ 点一个工具：单滑杆
+      <small>点工具后，底部换成这个工具的面板，照片保持最大。✕ 撤销这次改动并回到工具栏，✓ 确认，确认后可以撤销/重做。双击滑杆或点「重置」回到 0。曝光、对比度、饱和度、高光、阴影、锐化、颗粒、暗角等都用这个面板。</small></div>
+  </div>
+
+  <!-- 4. 白平衡 -->
+  <div class="col">
+    <div class="phone">
+      <div class="status"><span>21:56</span><span class="r">●●●● 5G ▮</span></div>
+      <div class="header">
+        <span class="btn dim"><i class="ic" style="--i:url(icons/chevron.left.png)"></i></span>
+        <div class="title">编辑照片</div>
+        <div class="sp"></div>
+        <span class="btn"><i class="ic" style="--i:url(icons/arrow.uturn.backward.png)"></i></span>
+        <span class="btn dim"><i class="ic" style="--i:url(icons/arrow.uturn.forward.png)"></i></span>
+        <span class="export">导出</span>
+      </div>
+      <div class="preview wb"><img src="sample.jpg"><div class="compare"><i class="ic" style="--i:url(icons/eye.png)"></i></div></div>
+      <div class="panel">
+        <div class="top">
+          <div class="round"><i class="ic" style="--i:url(icons/xmark.png)"></i></div>
+          <div class="name"><i class="ic" style="--i:url(icons/thermometer.medium.png)"></i>白平衡</div>
+          <div class="round ok"><i class="ic" style="--i:url(icons/checkmark.png)"></i></div>
+        </div>
+        <div class="sl">
+          <div class="lab"><span>色温</span><b>+18</b></div>
+          <div class="track temp"><div class="mid"></div><div class="thumb" style="left:59%"></div></div>
+        </div>
+        <div class="sl">
+          <div class="lab"><span>色调</span><b>-6</b></div>
+          <div class="track tint"><div class="mid"></div><div class="thumb" style="left:47%"></div></div>
+        </div>
+        <div class="reset"><i class="ic" style="--i:url(icons/arrow.counterclockwise.png)"></i>重置</div>
+      </div>
+    </div>
+    <div class="cap">④ 白平衡：双滑杆
+      <small>白平衡一个工具里放色温和色调两条滑杆，轨道用渐变色提示方向（冷 ↔ 暖、绿 ↔ 洋红）。</small></div>
+  </div>
+
+  <!-- 5. 肤色 -->
+  <div class="col">
+    <div class="phone">
+      <div class="status"><span>21:56</span><span class="r">●●●● 5G ▮</span></div>
+      <div class="header">
+        <span class="btn dim"><i class="ic" style="--i:url(icons/chevron.left.png)"></i></span>
+        <div class="title">编辑照片</div>
+        <div class="sp"></div>
+        <span class="btn"><i class="ic" style="--i:url(icons/arrow.uturn.backward.png)"></i></span>
+        <span class="btn dim"><i class="ic" style="--i:url(icons/arrow.uturn.forward.png)"></i></span>
+        <span class="export">导出</span>
+      </div>
+      <div class="preview warm"><img src="sample.jpg"><div class="compare"><i class="ic" style="--i:url(icons/eye.png)"></i></div></div>
+      <div class="panel">
+        <div class="top">
+          <div class="round"><i class="ic" style="--i:url(icons/xmark.png)"></i></div>
+          <div class="name"><i class="ic" style="--i:url(icons/face.smiling.png)"></i>肤色</div>
+          <div class="round ok"><i class="ic" style="--i:url(icons/checkmark.png)"></i></div>
+        </div>
+        <div class="sl">
+          <div class="lab"><span>色相</span><b>-12</b></div>
+          <div class="track skin"><div class="mid"></div><div class="thumb" style="left:44%"></div></div>
+          <div class="ends"><span>红润</span><span>偏黄</span></div>
+        </div>
+        <div class="sl">
+          <div class="lab"><span>亮度</span><b>+10</b></div>
+          <div class="track"><div class="mid"></div><div class="fill" style="left:50%;width:5%"></div><div class="thumb" style="left:55%"></div></div>
+        </div>
+        <div class="note">按颜色识别肤色，夕阳、麦田等暖色背景也可能一起变化</div>
+      </div>
+    </div>
+    <div class="cap">⑤ 肤色（新增）
+      <small>只作用在橙红色系（皮肤所在的色相范围），暖色背景也会受影响。色相往左更红润、往右更偏黄；亮度让皮肤提亮或压暗。</small></div>
+  </div>
+</div>
+
+<table>
+  <tr><th>分类</th><th>工具</th><th>图标</th><th>范围</th><th>状态</th></tr>
+  <tr><td rowspan="7">光线</td><td>曝光</td><td><i class="ic" style="--i:url(icons/plusminus.circle.png)"></i></td><td>-2 ~ +2 EV</td><td>已有</td></tr>
+  <tr><td>亮度</td><td><i class="ic" style="--i:url(icons/lightbulb.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>对比度</td><td><i class="ic" style="--i:url(icons/circle.lefthalf.filled.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>高光</td><td><i class="ic" style="--i:url(icons/circle.tophalf.filled.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>阴影</td><td><i class="ic" style="--i:url(icons/circle.bottomhalf.filled.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>白色</td><td><i class="ic" style="--i:url(icons/sun.min.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>黑色</td><td><i class="ic" style="--i:url(icons/moon.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td rowspan="4">颜色</td><td>白平衡（色温 + 色调）</td><td><i class="ic" style="--i:url(icons/thermometer.medium.png)"></i></td><td>各 -100 ~ 100</td><td>已有</td></tr>
+  <tr><td>饱和度</td><td><i class="ic" style="--i:url(icons/drop.fill.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>自然饱和度</td><td><i class="ic" style="--i:url(icons/drop.halffull.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>肤色（色相 + 亮度）</td><td><i class="ic" style="--i:url(icons/face.smiling.png)"></i></td><td>各 -100 ~ 100</td><td><span class="newtag">新增</span></td></tr>
+  <tr><td rowspan="3">细节</td><td>锐化</td><td><i class="ic" style="--i:url(icons/triangle.lefthalf.filled.png)"></i></td><td>0 ~ 100</td><td>已有</td></tr>
+  <tr><td>清晰度</td><td><i class="ic" style="--i:url(icons/camera.aperture.png)"></i></td><td>-100 ~ 100</td><td>已有</td></tr>
+  <tr><td>降噪</td><td><i class="ic" style="--i:url(icons/wand.and.stars.png)"></i></td><td>0 ~ 100</td><td>已有</td></tr>
+  <tr><td rowspan="3">效果</td><td>颗粒</td><td><i class="ic" style="--i:url(icons/aqi.medium.png)"></i></td><td>0 ~ 100</td><td>已有</td></tr>
+  <tr><td>暗角</td><td><i class="ic" style="--i:url(icons/camera.metering.center.weighted.png)"></i></td><td>-100 ~ 100（负值压暗四角，正值提亮）</td><td><span class="newtag">新增</span></td></tr>
+  <tr><td>曲线</td><td><i class="ic" style="--i:url(icons/point.topleft.down.curvedto.point.bottomright.up.png)"></i></td><td>RGB / 红 / 绿 / 蓝</td><td>已有，目前点不到</td></tr>
+</table>
+</body>
+</html>
