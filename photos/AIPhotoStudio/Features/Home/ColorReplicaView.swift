@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct ColorReplicaView: View {
+    let onOpenEditor: (PhotoProject, OriginalImage) -> Void
+
     @Environment(\.dismiss) private var dismiss
     @State private var selection = ReplicaPhotoSelection()
     @State private var targetThumbnail: UIImage?
@@ -85,31 +87,30 @@ struct ColorReplicaView: View {
         .preferredColorScheme(.dark)
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $picking) { slot in
-            SystemPhotoPicker(
-                selectionLimit: 1,
-                onSelection: { photos in
-                    picking = nil
-                    guard let photo = photos.first else { return }
-                    selection.select(photo, for: slot)
-                    let thumbnail = replicaThumbnail(photo)
-                    if slot == .target {
-                        targetThumbnail = thumbnail
-                    } else {
-                        referenceThumbnail = thumbnail
-                    }
-                },
-                onCancel: { picking = nil },
-                onFailure: { picking = nil; errorMessage = $0.localizedDescription }
-            )
+            PhotoSelectionView { photo in
+                selection.select(photo, for: slot)
+                let thumbnail = replicaThumbnail(photo)
+                if slot == .target {
+                    targetThumbnail = thumbnail
+                } else {
+                    referenceThumbnail = thumbnail
+                }
+                picking = nil
+            }
         }
         .navigationDestination(isPresented: Binding(
             get: { preview != nil }, set: { if !$0 { preview = nil } }
         )) {
             if let preview {
-                ReplicaPreviewView(payload: preview, onFinish: { dismiss() }, onReferenceChange: { photo in
-                    selection.select(photo, for: .reference)
-                    referenceThumbnail = replicaThumbnail(photo)
-                })
+                ReplicaPreviewView(
+                    payload: preview,
+                    onFinish: { dismiss() },
+                    onOpenEditor: onOpenEditor,
+                    onReferenceChange: { photo in
+                        selection.select(photo, for: .reference)
+                        referenceThumbnail = replicaThumbnail(photo)
+                    }
+                )
             }
         }
         .alert(L10n.text("Unable to match colors"), isPresented: Binding(
@@ -176,6 +177,7 @@ struct ReplicaPreviewPayload: Identifiable {
 private struct ReplicaPreviewView: View {
     let payload: ReplicaPreviewPayload
     let onFinish: () -> Void
+    let onOpenEditor: (PhotoProject, OriginalImage) -> Void
     let onReferenceChange: (PickedPhoto) -> Void
     @Environment(\.dismiss) private var dismiss
     @StateObject private var session: EditorSession
@@ -189,14 +191,15 @@ private struct ReplicaPreviewView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var savedProject: PhotoProject?
-    @State private var editorProject: PhotoProject?
     @State private var showsSaved = false
     private let repository = PhotoProjectRepository()
 
     init(payload: ReplicaPreviewPayload, onFinish: @escaping () -> Void,
+         onOpenEditor: @escaping (PhotoProject, OriginalImage) -> Void,
          onReferenceChange: @escaping (PickedPhoto) -> Void) {
         self.payload = payload
         self.onFinish = onFinish
+        self.onOpenEditor = onOpenEditor
         self.onReferenceChange = onReferenceChange
         _session = StateObject(wrappedValue: EditorSession(original: payload.original))
         _referenceThumbnail = State(initialValue: replicaThumbnail(payload.reference))
@@ -266,22 +269,9 @@ private struct ReplicaPreviewView: View {
         }
         .onChange(of: strength) { value in session.previewRecipe(recipe, strength: value / 100) }
         .sheet(isPresented: $presentsPicker) {
-            SystemPhotoPicker(
-                selectionLimit: 1,
-                onSelection: { photos in
-                    presentsPicker = false
-                    if let photo = photos.first { Task { await changeReference(photo) } }
-                },
-                onCancel: { presentsPicker = false },
-                onFailure: { presentsPicker = false; errorMessage = $0.localizedDescription }
-            )
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { editorProject != nil }, set: { if !$0 { editorProject = nil } }
-        )) {
-            if let editorProject {
-                EditorView(original: payload.original, project: editorProject, repository: repository,
-                           onRequestClose: onFinish, initialTool: .adjust, opensAdjustments: true)
+            PhotoSelectionView { photo in
+                presentsPicker = false
+                await changeReference(photo)
             }
         }
         .alert(L10n.text("Unable to match colors"), isPresented: Binding(
@@ -353,9 +343,7 @@ private struct ReplicaPreviewView: View {
         do {
             // Import only on confirmation; browsing and replacing references creates no projects.
             if savedProject == nil {
-                savedProject = try await repository.importPhoto(data: payload.target.data,
-                    suggestedName: payload.target.suggestedName,
-                    originalAssetIdentifier: payload.target.originalAssetIdentifier)
+                savedProject = try await repository.project(for: payload.target)
             }
             guard let project = savedProject else { return }
             let edits = session.editState
@@ -367,7 +355,7 @@ private struct ReplicaPreviewView: View {
                 try CoreImageRenderEngine().render(RenderRequest(original: original, edits: edits, maximumDimension: 512)).cgImage
             }.value
             try await repository.replaceThumbnail(thumbnail, for: updated)
-            if continueEditing { editorProject = updated } else { showsSaved = true }
+            if continueEditing { onOpenEditor(updated, payload.original) } else { showsSaved = true }
         } catch { errorMessage = error.localizedDescription }
     }
 }

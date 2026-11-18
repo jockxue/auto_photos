@@ -21,7 +21,7 @@ struct EditorView: View {
     @State private var exportPayload: EditorExportPayload?
 
     init(
-        original: OriginalImage = ImageSourceFactory.makeTestImage(),
+        original: OriginalImage,
         project: PhotoProject? = nil,
         repository: PhotoProjectRepository? = nil,
         onRequestClose: (() -> Void)? = nil,

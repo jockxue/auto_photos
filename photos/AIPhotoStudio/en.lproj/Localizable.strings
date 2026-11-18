@@ -344,3 +344,14 @@
 "Choose a reference photo to continue." = "Choose a reference photo to continue.";
 
 "Ready to preview your new colors." = "Ready to preview your new colors.";
+
+"Use System Picker" = "Use System Picker";
+"No photo selected" = "No photo selected";
+"1 photo selected" = "1 photo selected";
+"Export Failed" = "Export Failed";
+"Export Ready" = "Export Ready";
+"High quality at a smaller size." = "High quality at a smaller size.";
+"4K" = "4K";
+"2048 px" = "2048 px";
+"Long edge up to 3840 pixels." = "Long edge up to 3840 pixels.";
+"Long edge up to 2048 pixels." = "Long edge up to 2048 pixels.";

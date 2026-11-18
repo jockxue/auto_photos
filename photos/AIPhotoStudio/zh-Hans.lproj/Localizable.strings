@@ -342,3 +342,14 @@
 "Choose a reference photo to continue." = "请选择一张参考图";
 
 "Ready to preview your new colors." = "照片已就绪，点击生成仿色预览";
+
+"Use System Picker" = "使用系统选择器";
+"No photo selected" = "未选择照片";
+"1 photo selected" = "已选择 1 张";
+"Export Failed" = "导出失败";
+"Export Ready" = "导出完成";
+"High quality at a smaller size." = "画质高，文件更小";
+"4K" = "4K";
+"2048 px" = "2048 像素";
+"Long edge up to 3840 pixels." = "长边最多 3840 像素";
+"Long edge up to 2048 pixels." = "长边最多 2048 像素";

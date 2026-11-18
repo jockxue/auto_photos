@@ -151,10 +151,8 @@ private struct ExportDefaultsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("filmTone.export.format") private var format = "jpeg"
     @AppStorage("filmTone.export.quality") private var quality = 0.8
-    @AppStorage("filmTone.export.originalSize") private var useOriginalSize = true
+    @AppStorage("filmTone.export.size") private var sizeChoice = ExportPreferences.sizeChoice
     @AppStorage("filmTone.export.saveToPhotos") private var saveToPhotos = true
-    @AppStorage("filmTone.export.keepExif") private var keepExif = true
-    @AppStorage("filmTone.export.keepLocation") private var keepLocation = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -167,8 +165,8 @@ private struct ExportDefaultsView: View {
                     sectionTitle("File Format")
                     optionBox {
                         formatRow("JPEG", detail: "Small files, good for sharing.", value: "jpeg")
+                        formatRow("HEIC", detail: "High quality at a smaller size.", value: "heic")
                         formatRow("PNG", detail: "Lossless, files are usually larger.", value: "png")
-                        formatRow("TIFF", detail: "Best for a high-quality workflow.", value: "tiff")
                     }
                     sectionTitle("Quality")
                     VStack(alignment: .leading, spacing: 8) {
@@ -189,14 +187,13 @@ private struct ExportDefaultsView: View {
                     .background(FilmToneTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     sectionTitle("Export Size")
                     optionBox {
-                        sizeRow("Original Size", detail: "Keep the original pixel size.", original: true)
-                        sizeRow("Shrink Size", detail: "Output a specified long edge.", original: false)
+                        sizeRow("Original Size", detail: "Keep the original pixel size.", value: "original")
+                        sizeRow("4K", detail: "Long edge up to 3840 pixels.", value: "4k")
+                        sizeRow("2048 px", detail: "Long edge up to 2048 pixels.", value: "2048")
                     }
                     sectionTitle("Other Options")
                     optionBox {
                         toggleRow("Save to Album", detail: "Save to the photo library after export.", isOn: $saveToPhotos)
-                        toggleRow("Keep EXIF", detail: "Keep camera and capture details when possible.", isOn: $keepExif)
-                        toggleRow("Keep Location", detail: "Include the original GPS location.", isOn: $keepLocation)
                     }
                     Button(action: ExportPreferences.restoreDefaults) {
                         Text(L10n.text("Restore Defaults"))
@@ -259,12 +256,12 @@ private struct ExportDefaultsView: View {
         .buttonStyle(.plain)
     }
 
-    private func sizeRow(_ title: String, detail: String, original: Bool) -> some View {
+    private func sizeRow(_ title: String, detail: String, value: String) -> some View {
         Button {
-            useOriginalSize = original
+            sizeChoice = value
         } label: {
             HStack(alignment: .top, spacing: 12) {
-                radio(useOriginalSize == original)
+                radio(sizeChoice == value)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(L10n.text(title))
                         .font(.system(size: 15, weight: .semibold))
@@ -439,8 +436,8 @@ private struct RecipeListView: View {
                         .padding(16)
                 } else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 16) {
-                        ForEach(Array(recipes.enumerated()), id: \.element.id) { index, recipe in
-                            recipeCard(recipe, highlighted: index == 0)
+                        ForEach(recipes) { recipe in
+                            recipeCard(recipe)
                         }
                     }
                     .padding(16)
@@ -452,7 +449,7 @@ private struct RecipeListView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    private func recipeCard(_ recipe: Recipe, highlighted: Bool) -> some View {
+    private func recipeCard(_ recipe: Recipe) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(FilmToneTheme.cardBackground)
@@ -472,15 +469,6 @@ private struct RecipeListView: View {
                     .frame(height: 22)
                     .background(FilmToneTheme.chipBackground, in: Capsule())
             }
-            Text(L10n.text("Apply Recipe"))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(highlighted ? FilmToneTheme.accentText : FilmToneTheme.accent)
-                .frame(maxWidth: .infinity)
-                .frame(height: 32)
-                .background(
-                    highlighted ? FilmToneTheme.accent : FilmToneTheme.chipBackground,
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-                )
         }
     }
 }

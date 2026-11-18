@@ -1,13 +1,16 @@
 import Photos
 import SwiftUI
 
+/// The single place to pick a library photo. The caller decides where to go next,
+/// so this view never dismisses itself after a pick.
 struct PhotoSelectionView: View {
-    let onPicked: ([PickedPhoto]) -> Void
+    let onPicked: (PickedPhoto) async throws -> Void
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model = PhotoSelectionModel()
     @State private var isPreparing = false
     @State private var errorMessage: String?
+    @State private var presentsSystemPicker = false
 
     var body: some View {
         ZStack {
@@ -51,6 +54,21 @@ struct PhotoSelectionView: View {
         .toolbar(.hidden, for: .navigationBar)
         .task { model.start() }
         .onDisappear { model.stop() }
+        .sheet(isPresented: $presentsSystemPicker) {
+            SystemPhotoPicker(
+                selectionLimit: 1,
+                onSelection: { photos in
+                    presentsSystemPicker = false
+                    guard let photo = photos.first else { return }
+                    finish(with: photo)
+                },
+                onCancel: { presentsSystemPicker = false },
+                onFailure: {
+                    presentsSystemPicker = false
+                    errorMessage = $0.localizedDescription
+                }
+            )
+        }
     }
 
     private var header: some View {
@@ -108,9 +126,6 @@ struct PhotoSelectionView: View {
                 .foregroundStyle(FilmToneTheme.primaryText)
                 .lineLimit(1)
             Spacer()
-            Text(L10n.text("Select multiple"))
-                .font(FilmToneTheme.body)
-                .foregroundStyle(FilmToneTheme.secondaryText)
         }
     }
 
@@ -148,6 +163,12 @@ struct PhotoSelectionView: View {
             .padding(.horizontal, 20)
             .frame(height: 44)
             .background(FilmToneTheme.accent, in: Capsule())
+            if model.authorization != .notDetermined {
+                Button(L10n.text("Use System Picker")) { presentsSystemPicker = true }
+                    .font(FilmToneTheme.button)
+                    .foregroundStyle(FilmToneTheme.accent)
+                    .disabled(isPreparing)
+            }
             Spacer()
         }
         .padding(.horizontal, 32)
@@ -228,7 +249,7 @@ struct PhotoSelectionView: View {
                 side: 44,
                 cornerRadius: 8
             )
-            Text(L10n.format("Selected %lld photos", Int64(model.selectedAssets.count)))
+            Text(L10n.text(model.selectedAssets.isEmpty ? "No photo selected" : "1 photo selected"))
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(FilmToneTheme.primaryText)
                 .lineLimit(1)
@@ -270,13 +291,28 @@ struct PhotoSelectionView: View {
         isPreparing = true
         errorMessage = nil
         Task {
-            defer { isPreparing = false }
-            guard let photos = await model.makePickedPhotos() else {
+            guard let photo = await model.makePickedPhoto() else {
+                isPreparing = false
                 errorMessage = L10n.text("The photo could not be loaded.")
                 return
             }
-            dismiss()
-            onPicked(photos)
+            await deliver(photo)
+        }
+    }
+
+    private func finish(with photo: PickedPhoto) {
+        guard !isPreparing else { return }
+        isPreparing = true
+        errorMessage = nil
+        Task { await deliver(photo) }
+    }
+
+    private func deliver(_ photo: PickedPhoto) async {
+        defer { isPreparing = false }
+        do {
+            try await onPicked(photo)
+        } catch {
+            errorMessage = L10n.format("Import failed: %@", error.localizedDescription)
         }
     }
 }
@@ -357,11 +393,7 @@ private final class PhotoSelectionModel: NSObject, ObservableObject {
     }
 
     func toggle(_ asset: PHAsset) {
-        if let index = selectedAssets.firstIndex(where: { $0.localIdentifier == asset.localIdentifier }) {
-            selectedAssets.remove(at: index)
-        } else {
-            selectedAssets.append(asset)
-        }
+        selectedAssets = isSelected(asset) ? [] : [asset]
     }
 
     func start() {
@@ -430,14 +462,9 @@ private final class PhotoSelectionModel: NSObject, ObservableObject {
         }
     }
 
-    func makePickedPhotos() async -> [PickedPhoto]? {
-        guard !selectedAssets.isEmpty else { return nil }
-        var photos: [PickedPhoto] = []
-        for asset in selectedAssets {
-            guard let photo = await pickedPhoto(for: asset) else { return nil }
-            photos.append(photo)
-        }
-        return photos
+    func makePickedPhoto() async -> PickedPhoto? {
+        guard let asset = selectedAssets.first else { return nil }
+        return await pickedPhoto(for: asset)
     }
 
     private func pickedPhoto(for asset: PHAsset) async -> PickedPhoto? {

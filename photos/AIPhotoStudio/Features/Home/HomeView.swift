@@ -6,8 +6,7 @@ struct HomeView: View {
     private let repository = PhotoProjectRepository()
 
     @State private var projects: [PhotoProject] = []
-    @State private var editorPayload: EditorPayload?
-    @State private var isImporting = false
+    @State private var path: [HomeRoute] = []
     @State private var statusMessage: String?
     @State private var renameProject: PhotoProject?
     @State private var renameText = ""
@@ -15,7 +14,7 @@ struct HomeView: View {
     @State private var section: HomeSection = .home
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
                 FilmToneTheme.background.ignoresSafeArea()
 
@@ -29,23 +28,9 @@ struct HomeView: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     HomeTabBar(selection: $section)
                 }
-
-                if let editorPayload {
-                    NavigationStack {
-                        EditorView(
-                            original: editorPayload.original,
-                            project: editorPayload.project,
-                            repository: repository,
-                            onRequestClose: closeEditor
-                        )
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(FilmToneTheme.background.ignoresSafeArea())
-                    .transition(.move(edge: .top))
-                    .zIndex(1)
-                }
             }
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: HomeRoute.self, destination: destination)
             .task { await reloadProjects() }
             .sheet(item: $versionProject, onDismiss: {
                 Task { await reloadProjects() }
@@ -63,6 +48,31 @@ struct HomeView: View {
                     Task { await rename(project, to: renameText) }
                 }
             }
+        }
+        .onChange(of: path) { path in
+            if path.isEmpty { Task { await reloadProjects() } }
+        }
+    }
+
+    @ViewBuilder
+    private func destination(_ route: HomeRoute) -> some View {
+        switch route {
+        case .pickPhoto:
+            PhotoSelectionView { photo in
+                try await openEditor(importing: photo, tool: .filter)
+            }
+        case .replica:
+            ColorReplicaView { project, original in
+                showEditor(project: project, original: original, tool: .filter)
+            }
+        case .editor(let editor):
+            EditorView(
+                original: editor.original,
+                project: editor.project,
+                repository: repository,
+                onRequestClose: { path.removeAll() },
+                initialTool: editor.tool
+            )
         }
     }
 
@@ -82,9 +92,7 @@ struct HomeView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             sectionTitle("Start Creating")
                             HStack(alignment: .top, spacing: 10) {
-                                NavigationLink {
-                                    EditorView(initialTool: .filter)
-                                } label: {
+                                NavigationLink(value: HomeRoute.pickPhoto) {
                                     featureCard(
                                         title: "Apply a Preset",
                                         detail: "Explore film styles",
@@ -94,10 +102,7 @@ struct HomeView: View {
                                 .buttonStyle(.plain)
                                 .frame(maxWidth: .infinity, alignment: .top)
 
-                                NavigationLink {
-                                    ColorReplicaView()
-                                        .onDisappear { Task { await reloadProjects() } }
-                                } label: {
+                                NavigationLink(value: HomeRoute.replica) {
                                     featureCard(
                                         title: "Match Colors",
                                         detail: "Copy a reference photo's color",
@@ -107,61 +112,6 @@ struct HomeView: View {
                                 .buttonStyle(.plain)
                                 .frame(maxWidth: .infinity, alignment: .top)
                             }
-
-                            NavigationLink {
-                                PhotoSelectionView { photos in
-                                    Task { await importPhotos(photos) }
-                                }
-                            } label: {
-                                AppCard {
-                                    HStack(spacing: 12) {
-                                        AppIcon(systemName: isImporting ? "hourglass" : "photo.on.rectangle")
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(L10n.text(isImporting ? "Importing…" : "Choose from Photos"))
-                                                .font(FilmToneTheme.body.weight(.semibold))
-                                                .foregroundStyle(FilmToneTheme.primaryText)
-                                                .lineLimit(2)
-                                            Text(L10n.text("Import a photo without changing the original."))
-                                                .font(FilmToneTheme.caption)
-                                                .foregroundStyle(FilmToneTheme.secondaryText)
-                                                .lineLimit(3)
-                                        }
-                                        Spacer(minLength: 8)
-                                        Image(systemName: "chevron.right")
-                                            .font(FilmToneTheme.caption.weight(.semibold))
-                                            .foregroundStyle(FilmToneTheme.accent)
-                                    }
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(isImporting)
-
-                            NavigationLink {
-                                PhotoManagementView()
-                                    .onDisappear { Task { await reloadProjects() } }
-                            } label: {
-                                AppCard {
-                                    HStack(spacing: 12) {
-                                        AppIcon(systemName: "photo")
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(L10n.text("Photo Library"))
-                                                .font(FilmToneTheme.body.weight(.semibold))
-                                                .foregroundStyle(FilmToneTheme.primaryText)
-                                                .lineLimit(2)
-                                            Text(L10n.text("Browse and edit photos from your library."))
-                                                .font(FilmToneTheme.caption)
-                                                .foregroundStyle(FilmToneTheme.secondaryText)
-                                                .lineLimit(3)
-                                                .multilineTextAlignment(.leading)
-                                        }
-                                        Spacer(minLength: 8)
-                                        Image(systemName: "chevron.right")
-                                            .font(FilmToneTheme.caption.weight(.semibold))
-                                            .foregroundStyle(FilmToneTheme.accent)
-                                    }
-                                }
-                            }
-                            .buttonStyle(.plain)
                         }
 
                         if let statusMessage {
@@ -295,25 +245,22 @@ struct HomeView: View {
         }
     }
 
-    private func importPhotos(_ photos: [PickedPhoto]) async {
-        isImporting = true
-        statusMessage = nil
-        defer { isImporting = false }
+    private func openEditor(importing photo: PickedPhoto, tool: EditorView.Tool) async throws {
+        let project = try await repository.project(for: photo)
+        let original = try await decodedOriginal(for: project)
+        showEditor(project: project, original: original, tool: tool)
+    }
 
-        do {
-            var imported: [PhotoProject] = []
-            for photo in photos {
-                imported.append(try await repository.importPhoto(
-                    data: photo.data,
-                    suggestedName: photo.suggestedName,
-                    originalAssetIdentifier: photo.originalAssetIdentifier
-                ))
-            }
-            await reloadProjects()
-            statusMessage = L10n.format("Imported %lld photos.", imported.count)
-        } catch {
-            statusMessage = L10n.format("Import failed: %@", error.localizedDescription)
+    private func showEditor(project: PhotoProject, original: OriginalImage, tool: EditorView.Tool) {
+        path = [.editor(EditorRoute(project: project, original: original, tool: tool))]
+    }
+
+    private func decodedOriginal(for project: PhotoProject) async throws -> OriginalImage {
+        let data = try await repository.originalData(for: project)
+        guard let original = ImageSourceFactory.decode(data: data, maximumDimension: 2048) else {
+            throw ProjectRepositoryError.unreadableImage
         }
+        return original
     }
 
     private func reloadProjects() async {
@@ -324,22 +271,10 @@ struct HomeView: View {
         }
     }
 
-    private func closeEditor() {
-        withAnimation(.easeInOut(duration: 0.35)) {
-            editorPayload = nil
-        }
-        Task { await reloadProjects() }
-    }
-
     private func open(_ project: PhotoProject) async {
         do {
-            let data = try await repository.originalData(for: project)
-            guard let original = ImageSourceFactory.decode(data: data, maximumDimension: 2048) else {
-                throw ProjectRepositoryError.unreadableImage
-            }
-            withAnimation(.easeInOut(duration: 0.35)) {
-                editorPayload = EditorPayload(project: project, original: original)
-            }
+            let original = try await decodedOriginal(for: project)
+            showEditor(project: project, original: original, tool: .filter)
         } catch {
             statusMessage = L10n.format("Project could not be opened: %@", error.localizedDescription)
         }
@@ -438,10 +373,36 @@ private struct VersionHistoryView: View {
     }
 }
 
-private struct EditorPayload: Identifiable {
-    var id: UUID { project.id }
+private enum HomeRoute: Hashable {
+    case pickPhoto
+    case replica
+    case editor(EditorRoute)
+}
+
+/// `OriginalImage` is not hashable, so each push is identified by its own id.
+private struct EditorRoute: Hashable {
+    let id = UUID()
     let project: PhotoProject
     let original: OriginalImage
+    let tool: EditorView.Tool
+
+    static func == (lhs: EditorRoute, rhs: EditorRoute) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+extension PhotoProjectRepository {
+    /// Reopens the existing project for a library photo instead of importing a duplicate.
+    func project(for photo: PickedPhoto) throws -> PhotoProject {
+        if let identifier = photo.originalAssetIdentifier,
+           let existing = try allProjects().first(where: { $0.originalAssetIdentifier == identifier }) {
+            return existing
+        }
+        return try importPhoto(
+            data: photo.data,
+            suggestedName: photo.suggestedName,
+            originalAssetIdentifier: photo.originalAssetIdentifier
+        )
+    }
 }
 
 private struct ProjectThumbnail: View {

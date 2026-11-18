@@ -5,6 +5,7 @@ enum ExportPreferences {
     private static let formatKey = "filmTone.export.format"
     private static let qualityKey = "filmTone.export.quality"
     private static let originalSizeKey = "filmTone.export.originalSize"
+    private static let sizeKey = "filmTone.export.size"
     private static let saveToPhotosKey = "filmTone.export.saveToPhotos"
 
     static var formatChoice: String {
@@ -21,13 +22,17 @@ enum ExportPreferences {
         set { UserDefaults.standard.set(newValue, forKey: qualityKey) }
     }
 
-    static var useOriginalSize: Bool {
+    /// "original", "4k" or "2048". Falls back to the older on/off original-size setting.
+    static var sizeChoice: String {
         get {
-            UserDefaults.standard.object(forKey: originalSizeKey) == nil
-                ? true
-                : UserDefaults.standard.bool(forKey: originalSizeKey)
+            if let value = UserDefaults.standard.string(forKey: sizeKey) { return value }
+            if UserDefaults.standard.object(forKey: originalSizeKey) != nil,
+               !UserDefaults.standard.bool(forKey: originalSizeKey) {
+                return "2048"
+            }
+            return "original"
         }
-        set { UserDefaults.standard.set(newValue, forKey: originalSizeKey) }
+        set { UserDefaults.standard.set(newValue, forKey: sizeKey) }
     }
 
     static var saveToPhotos: Bool {
@@ -39,18 +44,9 @@ enum ExportPreferences {
         set { UserDefaults.standard.set(newValue, forKey: saveToPhotosKey) }
     }
 
-    static var keepExif: Bool {
-        get { UserDefaults.standard.object(forKey: "filmTone.export.keepExif") == nil ? true : UserDefaults.standard.bool(forKey: "filmTone.export.keepExif") }
-        set { UserDefaults.standard.set(newValue, forKey: "filmTone.export.keepExif") }
-    }
-
-    static var keepLocation: Bool {
-        get { UserDefaults.standard.bool(forKey: "filmTone.export.keepLocation") }
-        set { UserDefaults.standard.set(newValue, forKey: "filmTone.export.keepLocation") }
-    }
-
     static var format: ExportFormat {
         switch formatChoice {
+        case "heic": .heic
         case "png", "tiff": .png
         default: .jpeg
         }
@@ -66,16 +62,33 @@ enum ExportPreferences {
     }
 
     static var size: ExportSize {
-        useOriginalSize ? .original : .pixels2048
+        switch sizeChoice {
+        case "4k": .fourK
+        case "2048": .pixels2048
+        default: .original
+        }
+    }
+
+    static var summary: String {
+        var parts = [format.rawValue.uppercased()]
+        if format != .png { parts.append(jpegQuality.title) }
+        parts.append(L10n.text(sizeTitleKey))
+        return parts.joined(separator: " · ")
+    }
+
+    private static var sizeTitleKey: String {
+        switch size {
+        case .fourK: "4K"
+        case .pixels2048: "2048 px"
+        default: "Original Size"
+        }
     }
 
     static func restoreDefaults() {
         formatChoice = "jpeg"
         quality = 0.8
-        useOriginalSize = true
+        sizeChoice = "original"
         saveToPhotos = true
-        keepExif = true
-        keepLocation = false
     }
 }
 
@@ -93,6 +106,7 @@ struct ExportView: View {
     @State private var sharePayload: SharePayload?
     @State private var exportedURL: URL?
     @State private var savedToPhotos = false
+    @State private var isSavingToPhotos = false
     @State private var exportTask: Task<Void, Never>?
     @State private var operation = ExportOperationState()
 
@@ -104,11 +118,12 @@ struct ExportView: View {
                     previewImage
                     status
                     actionRow(
-                        symbol: "square.and.arrow.down",
-                        title: "Save to Album",
-                        detail: savedToPhotos ? "Saved to Photos" : "JPEG · High Quality",
+                        symbol: savedToPhotos ? "checkmark.circle" : "square.and.arrow.down",
+                        title: savedToPhotos ? "Saved to Photos" : "Save to Album",
+                        detail: ExportPreferences.summary,
                         action: saveToPhotos
                     )
+                    .disabled(savedToPhotos || isSavingToPhotos)
                     .padding(.top, 28)
                     actionRow(
                         symbol: "square.and.arrow.up",
@@ -123,6 +138,12 @@ struct ExportView: View {
                             .foregroundStyle(FilmToneTheme.secondaryText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 12)
+                        if exportedURL == nil && !operation.isRunning {
+                            Button(L10n.text("Retry"), action: startExport)
+                                .font(FilmToneTheme.button)
+                                .foregroundStyle(FilmToneTheme.accent)
+                                .padding(.top, 8)
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -197,16 +218,22 @@ struct ExportView: View {
                     ProgressView()
                         .tint(FilmToneTheme.accentText)
                 } else {
-                    Image(systemName: "checkmark")
+                    Image(systemName: exportedURL == nil ? "exclamationmark" : "checkmark")
                         .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(FilmToneTheme.accentText)
                 }
             }
-            Text(L10n.text(operation.isRunning ? "Exporting…" : "Done"))
+            Text(L10n.text(statusTitle))
                 .font(.system(size: 22, weight: .semibold))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 28)
+    }
+
+    private var statusTitle: String {
+        if operation.isRunning { return "Exporting…" }
+        if exportedURL == nil { return "Export Failed" }
+        return savedToPhotos ? "Saved to Photos" : "Export Ready"
     }
 
     private func actionRow(symbol: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
@@ -238,11 +265,14 @@ struct ExportView: View {
     }
 
     private func saveToPhotos() {
-        guard let exportedURL else { return }
+        guard let exportedURL, !savedToPhotos, !isSavingToPhotos else { return }
+        isSavingToPhotos = true
         Task {
+            defer { isSavingToPhotos = false }
             do {
                 try await PhotoLibrarySaver().save(fileURL: exportedURL)
                 savedToPhotos = true
+                errorMessage = nil
             } catch {
                 errorMessage = error.localizedDescription
             }
